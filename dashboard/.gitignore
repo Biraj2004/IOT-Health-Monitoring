@@ -17,6 +17,7 @@ build/
 .cache/
 .eslintcache
 .oxlintcache
+.cjs
 
 # Environment variables & local configuration
 .env

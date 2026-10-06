@@ -13,7 +13,8 @@
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/ESP32-DevKit-E7352C?style=flat-square&logo=espressif&logoColor=white" alt="ESP32" />
-  <img src="https://img.shields.io/badge/License-MIT-gray?style=flat-square" alt="License" />
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
+  <a href="./CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square" alt="PRs Welcome" /></a>
 </p>
 
 ---
@@ -78,3 +79,10 @@ The dashboard is pre-configured for one-click deployment on **Vercel**:
 
 - **Production URL**: [https://vitalmonitor.vercel.app](https://vitalmonitor.vercel.app)
 - **Configuration**: Root [`vercel.json`](./vercel.json) & [`dashboard/vercel.json`](./dashboard/vercel.json) handle SPA routing rewrites, immutable asset caching, and security headers.
+
+---
+
+## Contributing & License
+
+- Contributions and feedback are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
+- This project is open source and available under the [MIT License](LICENSE).

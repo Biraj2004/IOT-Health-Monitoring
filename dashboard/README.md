@@ -4,7 +4,8 @@
   <a href="https://vitalmonitor.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-vitalmonitor.vercel.app-008F72?style=flat-square&logo=vercel" alt="Live Demo" /></a>
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
   <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Linter-Oxlint-blue?style=flat-square" alt="Oxlint" />
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
+  <a href="../CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square" alt="PRs Welcome" /></a>
 </p>
 
 React 19 & Vite frontend dashboard for the IoT-based SmartHealth monitoring system.
@@ -24,3 +25,8 @@ npm run build    # Build optimized production bundle to dist/
 npm run lint     # Run oxlint fast static code analysis
 npm run preview  # Locally preview production dist build
 ```
+
+## Contributing & License
+
+- Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for pull request guidelines and development workflow.
+- Licensed under the [MIT License](../LICENSE).
