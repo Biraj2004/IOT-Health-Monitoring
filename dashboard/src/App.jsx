@@ -3,6 +3,8 @@ import { DashboardHeader } from './components/DashboardHeader';
 import { VitalsGrid } from './components/VitalsGrid';
 import { ECGMonitor } from './components/ECGMonitor';
 import { SensorStatus } from './components/SensorStatus';
+import { MLAnalysisCard } from './components/MLAnalysisCard';
+import { EventLog } from './components/EventLog';
 import { ErrorPage } from './components/ErrorPage';
 import { useTelemetry } from './hooks/useTelemetry';
 import './App.css';
@@ -16,6 +18,7 @@ import './App.css';
  * - Clean abstractions (useTelemetry handles hardware transports and streaming)
  * - Single-screen error pages (404, 500, 503) matching dashboard design language
  * - Direct mapping to workflow report PDF across dashboard header and error pages
+ * - Complete AI/ML analysis and live system/clinical event logging
  */
 export function App() {
   const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
@@ -39,7 +42,10 @@ export function App() {
     connectionStatus,
     lastUpdated,
     vitals,
-    sensorStatus
+    sensorStatus,
+    mlAnalysis,
+    eventLogs,
+    clearEvents
   } = useTelemetry();
 
   // Normalize path
@@ -89,6 +95,19 @@ export function App() {
           />
 
           <SensorStatus sensors={sensorStatus} />
+        </div>
+
+        {/* 5. Clinical Analytics & Event Stream Grid (AI/ML Analysis + Event Log) */}
+        <div className="analytics-grid">
+          <MLAnalysisCard
+            mlData={mlAnalysis}
+            heartRate={vitals.heartRate}
+          />
+
+          <EventLog
+            events={eventLogs}
+            onClear={clearEvents}
+          />
         </div>
       </div>
     </div>

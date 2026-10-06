@@ -23,7 +23,8 @@
 
 .dashboard-container > *,
 .vitals-grid > *,
-.monitor-grid > * {
+.monitor-grid > *,
+.analytics-grid > * {
   min-width: 0;
 }
 
@@ -431,6 +432,748 @@
 }
 
 /* ------------------------------------------------------------------------------
+   4b. Analytics & Event Stream Grid (AI/ML Analysis & Clinical Event Log)
+   ------------------------------------------------------------------------------ */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(12px, 1.5vw, 18px);
+  align-items: stretch;
+}
+
+/* ==============================================================================
+   ML Analysis Card
+   ============================================================================== */
+.ml-analysis-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ml-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ml-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ml-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ml-title-icon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.ml-card-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.ml-model-tag {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.ml-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ml-badge-nominal {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.ml-badge-warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.ml-badge-alert {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.ml-status-text {
+  line-height: 1;
+}
+
+/* Anomaly Score & Gauge */
+.ml-metric-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: #f8fafb;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+}
+
+.ml-score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.ml-score-display {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.ml-score-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ml-metric-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ml-metric-scale {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.ml-score-val-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.ml-score-number {
+  font-size: clamp(30px, 3vw, 36px);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+.ml-score-unit {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.ml-gauge-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ml-gauge-track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-border-subtle);
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.ml-gauge-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.gauge-nominal {
+  background-color: var(--color-accent);
+}
+
+.gauge-warning {
+  background-color: var(--color-warning);
+}
+
+.gauge-alert {
+  background-color: var(--color-danger);
+}
+
+.ml-gauge-threshold-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background-color: var(--color-text);
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+
+.ml-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.ml-threshold-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.ml-diagnostic-summary {
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.summary-nominal {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.summary-alert {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* Subgrid for Trends and Rhythm */
+.ml-subgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ml-subcard {
+  background-color: #fcfdfe;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ml-subcard-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.ml-subcard-icon {
+  color: var(--color-text-muted);
+}
+
+.ml-subcard-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ml-trend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ml-trend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.ml-trend-label {
+  color: var(--color-text-secondary);
+}
+
+.ml-trend-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+.trend-icon-up {
+  color: var(--color-warning);
+}
+
+.trend-icon-down {
+  color: var(--color-warning);
+}
+
+.trend-icon-flat {
+  color: var(--color-accent);
+}
+
+.ml-trend-direction {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.ml-trend-slope {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* ECG Rhythm Subcard */
+.ml-rhythm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ml-rhythm-badge {
+  background-color: var(--color-accent-soft);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.ml-rhythm-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1.3;
+  display: block;
+}
+
+.ml-rhythm-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ml-rhythm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11.5px;
+}
+
+.rhythm-label {
+  color: var(--color-text-muted);
+}
+
+.rhythm-value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--color-text);
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Features Matrix */
+.ml-features-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.ml-features-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.features-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.features-eq {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.ml-features-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.feature-cell {
+  background-color: #f8fafb;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.feature-name {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+.feature-val {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+  white-space: nowrap;
+}
+
+.ml-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  margin-top: auto;
+}
+
+.ml-latency-meta {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.ml-disclaimer-meta {
+  font-style: normal;
+}
+
+/* ==============================================================================
+   Event Log Card
+   ============================================================================== */
+.event-log-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.event-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-title-icon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.event-card-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.event-count-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.event-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-clear-btn {
+  gap: 5px;
+  color: var(--color-text-secondary);
+}
+
+.event-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: 8px;
+}
+
+.event-filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.event-filter-tab {
+  background: none;
+  border: 1px solid transparent;
+  padding: 4px 9px;
+  border-radius: var(--radius-control);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.event-filter-tab:hover {
+  background-color: #f4f6f8;
+  color: var(--color-text);
+}
+
+.event-filter-tab.tab-active {
+  background-color: #edf1f5;
+  color: var(--color-text);
+  font-weight: 600;
+  border-color: var(--color-border);
+}
+
+.filter-count-badge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  background-color: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
+.filter-count-badge.badge-warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+/* Event Stream Feed */
+.event-stream-container {
+  height: 290px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.event-stream-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.event-stream-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.event-stream-container::-webkit-scrollbar-thumb {
+  background: #d8dee5;
+  border-radius: 4px;
+}
+
+.event-stream-container::-webkit-scrollbar-thumb:hover {
+  background: #b8c4d0;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px;
+  background-color: #fcfdfe;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  transition: background-color 0.15s ease;
+}
+
+.event-row:hover {
+  background-color: #f7f9fa;
+  border-color: #e2e8f0;
+}
+
+.event-meta-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 90px;
+}
+
+.event-timestamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+.event-time-icon {
+  flex-shrink: 0;
+}
+
+.event-severity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  line-height: 1.3;
+}
+
+.event-badge-info,
+.event-badge-nominal {
+  background-color: #f1f4f6;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.filter-count-badge.filter-count-neutral {
+  background-color: #edf1f5;
+  color: var(--color-text-secondary);
+}
+
+.event-badge-warning {
+  background-color: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.event-badge-critical {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.event-content-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-category-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.event-category-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.event-device-tag {
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}
+
+.event-message-text {
+  font-size: 12.5px;
+  color: var(--color-text);
+  line-height: 1.35;
+  margin: 0;
+  word-break: break-word;
+}
+
+.event-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 24px;
+}
+
+.event-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 11.5px;
+  margin-top: auto;
+}
+
+.event-stream-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+}
+
+.stream-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+}
+
+.stream-status-text {
+  font-weight: 500;
+}
+
+.event-db-meta {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* ------------------------------------------------------------------------------
    5. Responsive Composition (DESIGN-GUIDE.md Section 3)
    ------------------------------------------------------------------------------ */
 @media (max-width: 1023px) {
@@ -444,6 +1187,11 @@
   }
 
   .monitor-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .analytics-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
@@ -506,8 +1254,42 @@
 
   .vital-card,
   .ecg-monitor-card,
-  .sensor-status-card {
+  .sensor-status-card,
+  .ml-analysis-card,
+  .event-log-card {
     padding: 14px 16px;
+  }
+
+  .analytics-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .ml-subgrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .ml-score-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .ml-features-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .event-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .event-meta-col {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .ecg-canvas {
@@ -539,12 +1321,18 @@
 
   .vital-card,
   .ecg-monitor-card,
-  .sensor-status-card {
+  .sensor-status-card,
+  .ml-analysis-card,
+  .event-log-card {
     padding: 12px 14px;
   }
 
   .vital-number {
     font-size: 34px;
+  }
+
+  .ml-features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ecg-canvas {

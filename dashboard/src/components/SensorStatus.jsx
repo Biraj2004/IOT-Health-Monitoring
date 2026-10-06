@@ -41,7 +41,7 @@ export function SensorStatus({ sensors }) {
       </div>
 
       <div className="sensor-card-footer">
-        <span className="sensor-source-label">Data source: Hardware sensors</span>
+        <span className="sensor-source-label">Hardware sensors (ESP32)</span>
       </div>
     </article>
   );
