@@ -1,0 +1,22 @@
+{
+  "name": "VITAL / MONITOR — Real-Time Health Telemetry",
+  "short_name": "VITAL",
+  "description": "Real-time clinical health monitoring dashboard tracking SpO2, body temperature, heart rate, and live Lead I ECG waveform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f5f6",
+  "theme_color": "#f3f5f6",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
