@@ -25,9 +25,10 @@
   - Bikkram Das (Roll: `34900323012`) — Hardware Systems & Prototyping
   - Biraj Sarkar (Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
   - Sayan Sarkar (Roll: `34900323048`) — ML Engineering & Data Analytics
-- **Faculty Supervisors:**
+- **Faculty Supervisor:**
   - Prof. Rajib Das, Assistant Professor, Dept. of ECE
-  - Mr. Abhijit Sarma, Assistant Professor, Dept. of ECE
+- **Laboratory Assistance:**
+  - Mr. Abhijit Sarma, Laboratory Assistant, Dept. of ECE
 - **Academic Disclaimer:**
   This project is strictly an undergraduate engineering prototype developed for research, academic evaluation, and viva demonstration. It is **not** a certified medical device and does not hold CE/FDA clinical regulatory approval. All anomaly scores and trend flags are non-diagnostic statistical indices.
 

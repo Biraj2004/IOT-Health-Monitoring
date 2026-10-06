@@ -36,9 +36,10 @@ The system captures vital biometric signals from a patient via non-invasive sens
   - Bikkram Das (Roll: `34900323012`) — Hardware Systems & Prototyping
   - Biraj Sarkar (Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
   - Sayan Sarkar (Roll: `34900323048`) — ML Engineering & Data Analytics
-- **Faculty Supervisors:**
+- **Faculty Supervisor:**
   - Prof. Rajib Das, Assistant Professor, Dept. of ECE
-  - Mr. Abhijit Sarma, Assistant Professor, Dept. of ECE
+- **Laboratory Assistance:**
+  - Mr. Abhijit Sarma, Laboratory Assistant, Dept. of ECE
 - **Institution:** Cooch Behar Government Engineering College (CGEC), Affiliated to MAKAUT, West Bengal
 
 ### Core Monitored Vitals
