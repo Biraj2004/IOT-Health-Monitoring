@@ -1,0 +1,1155 @@
+\documentclass[12pt]{article}
+
+% ==============================================================================
+% SMARTHEALTH IOT — SYSTEM WORKFLOW & TECHNICAL SPECIFICATION REPORT
+% Department of Electronics and Communication Engineering
+% Cooch Behar Government Engineering College (CGEC)
+% Affiliated to Maulana Abul Kalam Azad University of Technology (MAKAUT), West Bengal
+% ==============================================================================
+
+\usepackage[a4paper, margin=0.8in, headheight=14pt, footskip=24pt]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+
+% --- Typography (XeLaTeX per Biraj's Specs) ---
+\setmainfont{TeX Gyre Pagella}
+\setmonofont[Scale=0.88]{TeX Gyre Cursor}
+\setmathfont{Latin Modern Math}
+
+\usepackage{setspace}
+\setstretch{1.2}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\raggedright
+\raggedbottom
+
+% --- Core Packages ---
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{float}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.9}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+
+% --- TikZ Vector Diagramming ---
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric, fit, backgrounds}
+
+% --- Semantic Color Palette ---
+\definecolor{darkslate}{RGB}{44, 62, 80}
+\definecolor{hworange}{RGB}{211, 84, 0}
+\definecolor{beblue}{RGB}{36, 113, 163}
+\definecolor{dbgreen}{RGB}{34, 153, 84}
+\definecolor{mlpurple}{RGB}{125, 60, 152}
+\definecolor{feteal}{RGB}{19, 141, 117}
+\definecolor{alertred}{RGB}{192, 57, 43}
+\definecolor{boxbg}{RGB}{248, 249, 250}
+\definecolor{linkpurple}{RGB}{128, 70, 160}
+\definecolor{inlinecodebg}{RGB}{225, 228, 233}
+
+% --- Hyperlinks Configuration ---
+\usepackage[colorlinks=true, linkcolor=linkpurple, urlcolor=linkpurple, citecolor=linkpurple]{hyperref}
+
+% --- Running Headers & Footers (Clean Academic Style, No Branding) ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\small\textsf{\textcolor{darkslate}{SmartHealth IoT --- 7th Semester Major Project Workflow Report}}}
+\fancyhead[R]{\small\textsf{\textcolor{darkslate}{ECE Dept, CGEC}}}
+\fancyfoot[C]{\small\textsf{\textcolor{darkslate}{\thepage\ of \pageref{LastPage}}}}
+
+% --- Heading Typography ---
+\titleformat{\section}
+  {\fontsize{16}{20}\selectfont\bfseries\centering\color{darkslate}}
+  {\thesection.}{0.5em}{\MakeUppercase}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+
+\titleformat{\subsection}
+  {\fontsize{14}{17}\selectfont\bfseries\color{darkslate}}
+  {\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+\titleformat{\subsubsection}
+  {\fontsize{13}{16}\selectfont\bfseries\color{darkslate}}
+  {\thesubsubsection}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{6pt}{2pt}
+
+% --- Table Column Specifications & Width Budgeting ---
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+\newcolumntype{B}[1]{>{\raggedright\arraybackslash\bfseries}m{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash\bfseries}m{#1}}
+
+\newlength{\tblavail}
+\newlength{\wA}
+\newlength{\wB}
+\newlength{\wC}
+\newlength{\wD}
+\newlength{\wE}
+
+% --- Custom tcolorbox Styles ---
+\tcbset{
+  tikzbox/.style={
+    colback=white,
+    colframe=darkslate!60,
+    boxrule=0.8pt,
+    arc=3pt,
+    left=6pt, right=6pt, top=6pt, bottom=6pt,
+    fonttitle=\bfseries\small,
+    coltitle=white,
+    colbacktitle=darkslate
+  },
+  cardbox/.style={
+    colback=boxbg,
+    colframe=darkslate!60,
+    boxrule=0.8pt,
+    arc=3pt,
+    left=6pt, right=6pt, top=5pt, bottom=5pt,
+    fonttitle=\bfseries\small,
+    coltitle=white,
+    colbacktitle=darkslate
+  },
+  alertbox/.style={
+    colback=alertred!5,
+    colframe=alertred,
+    boxrule=0.8pt,
+    arc=3pt,
+    left=6pt, right=6pt, top=5pt, bottom=5pt,
+    fonttitle=\bfseries\small,
+    coltitle=white,
+    colbacktitle=alertred
+  }
+}
+
+% --- Fixed 3-Level Bullet Hierarchy per Biraj's Notes ---
+\setlist[itemize,1]{label=\textbullet, leftmargin=2.75em, itemsep=2pt, parsep=0pt, topsep=2pt}
+\setlist[itemize,2]{label=$\circ$, leftmargin=2.50em, itemsep=1.5pt, parsep=0pt, topsep=1.5pt}
+\setlist[itemize,3]{label=--, leftmargin=2.50em, itemsep=1pt, parsep=0pt, topsep=1pt}
+\setlist[enumerate,1]{leftmargin=2.5em, itemsep=2pt, parsep=0pt, topsep=2pt}
+
+\setcounter{tocdepth}{1}
+\begin{document}
+
+% ==============================================================================
+% PAGE 1: COVER & TITLE PAGE
+% ==============================================================================
+\thispagestyle{empty}
+\begin{center}
+    {\fontsize{14}{17}\selectfont\textbf{DEPARTMENT OF ELECTRONICS AND COMMUNICATION ENGINEERING}\par}
+    \vspace{0.08cm}
+    {\fontsize{12}{15}\selectfont\textbf{COOCH BEHAR GOVERNMENT ENGINEERING COLLEGE}\par}
+    \vspace{0.04cm}
+    {\footnotesize Affiliated to Maulana Abul Kalam Azad University of Technology (MAKAUT), West Bengal\par}
+    {\scriptsize Harinchawra, P.O. Ghughumari, Cooch Behar, West Bengal 736170, India\par}
+    
+    \vspace{0.3cm}
+    \begin{tcolorbox}[colback=beblue!5, colframe=beblue, arc=3pt, boxrule=1.1pt, width=\linewidth, top=6pt, bottom=6pt]
+        \centering
+        {\fontsize{16}{20}\selectfont\textbf{\textcolor{darkslate}{SmartHealth IoT}}\par}
+        \vspace{0.08cm}
+        {\fontsize{12.5}{15.5}\selectfont\textbf{\textcolor{beblue}{AI-Enhanced IoT-Based Real-Time Health Monitoring and ECG Anomaly Detection System}}\par}
+        \vspace{0.12cm}
+        {\small\textbf{7th Semester B.Tech Major Project Technical Workflow \& Architecture Report}\par}
+    \end{tcolorbox}
+    
+    \vspace{0.2cm}
+    {\textbf{\small Project Evaluation Dossier}\par}
+    \vspace{0.12cm}
+    
+    \setlength{\tabcolsep}{6pt}
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tblavail}{\dimexpr\linewidth - 4\tabcolsep - 3\arrayrulewidth\relax}
+    \setlength{\wA}{0.28\tblavail}
+    \setlength{\wB}{0.72\tblavail}
+    \begin{tabular}{|B{\wA}|L{\wB}|}
+        \hline
+        \multicolumn{1}{|M{\wA}|}{\textbf{Academic Item}} & \multicolumn{1}{M{\wB}|}{\textbf{Details}} \\
+        \hline
+        Institution & Cooch Behar Government Engineering College (CGEC) \\
+        \hline
+        Affiliating University & Maulana Abul Kalam Azad University of Technology (MAKAUT) \\
+        \hline
+        Degree \& Semester & Bachelor of Technology in ECE --- 7th Semester \\
+        \hline
+        Academic Session & 2026--2027 (Evaluation Period: October -- December 2026) \\
+        \hline
+        Faculty Supervisors & \textbf{Prof. Rajib Das}, Assistant Professor, Department of ECE \newline
+        \textbf{Mr. Abhijit Sarma}, Assistant Professor, Department of ECE \\
+        \hline
+        Student Project Team & \textbf{Soumyajit Pandit} (Roll: 34900323052) --- \textit{Lead \& Embedded Firmware} \newline
+        \textbf{Debanjan Chakraborty} (Roll: 34900323015) --- \textit{Backend \& ML Systems} \newline
+        \textbf{Bikkram Das} (Roll: 34900323012) --- \textit{Hardware Systems \& Prototyping} \newline
+        \textbf{Biraj Sarkar} (Roll: 34900323013) --- \textit{Frontend UI/UX \& Real-Time Web} \newline
+        \textbf{Sayan Sarkar} (Roll: 34900323048) --- \textit{ML Engineering \& Data Analytics} \\
+        \hline
+    \end{tabular}
+
+    \vspace{0.25cm}
+    \begin{tcolorbox}[alertbox, title={Academic Prototype Disclaimer}, width=\linewidth, top=4pt, bottom=4pt]
+        \scriptsize
+        This system is an undergraduate engineering prototype developed strictly for academic, research, and educational demonstration purposes. It is \textbf{not} a certified medical device and does not hold clinical regulatory approval. Predictions generated by the integrated machine learning pipeline reflect statistical anomaly indices and physiological trends, not definitive medical diagnoses.
+    \end{tcolorbox}
+\end{center}
+\clearpage
+
+% ==============================================================================
+% PAGE 2: EXECUTIVE SUMMARY & TABLE OF CONTENTS
+% ==============================================================================
+\section*{Executive Summary}
+\addcontentsline{toc}{section}{Executive Summary}
+
+The \textbf{SmartHealth IoT} system is an open-architecture, low-cost telemetry platform that continuously captures, stores, analyzes, and visualizes four core human vital signs in real time: single-lead Electrocardiogram (ECG) analog waveforms via the \textbf{AD8232} front-end, blood oxygen saturation ($\text{SpO}_2$) and heart rate via the optical \textbf{MAX30102} sensor, and body temperature via the digital \textbf{DS18B20} 1-Wire probe.
+
+An \textbf{ESP32} microcontroller digitizes biosignals and batches high-frequency ECG samples (100\,Hz) into structured JSON payloads transmitted over Wi-Fi to an asynchronous \textbf{Python FastAPI} backend. The backend validates payloads via Pydantic, performs non-blocking writes to \textbf{MongoDB Atlas}, evaluates clinical threshold alarms, and executes in-memory machine learning inference using a scikit-learn \textbf{Isolation Forest} for multivariate anomaly scoring and linear trend forecasting. Telemetry, anomaly indicators, and live ECG traces are pushed via full-duplex \textbf{WebSockets} to a reactive \textbf{React} dashboard for 60\,FPS canvas oscilloscope visualization, while a local 0.96'' OLED and piezo buzzer ensure edge safety fail-safes.
+
+\vspace{0.2cm}
+\begin{spacing}{0.95}
+\tableofcontents
+\end{spacing}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 3: SECTION 1 — INTRODUCTION, SCOPE & DELIBERATE EXCLUSIONS
+% ==============================================================================
+\clearpage
+\section{Introduction, Problem Statement and Scope}
+\label{sec:intro_scope}
+
+\subsection{Problem Statement and Motivation}
+Conventional clinical monitoring relies on bulky, expensive, wired bedside monitors that confine patients to hospital beds and cannot be deployed in ambulatory or home-care environments. Meanwhile, consumer wearable devices are proprietary closed systems that conceal raw sensor data, cannot stream continuous raw ECG waveforms to open web endpoints, and cannot interface with open hospital server architectures. SmartHealth IoT bridges this gap with an open, low-cost telemetry platform that continuously captures diagnostic biosignals, streams them over Wi-Fi, stores historical time-series data, detects anomalies, and renders live browser waveforms with sub-second latency.
+
+\subsection{Monitored Physiological Parameters and Scope Boundaries}
+The system captures four clinically complementary vital signs:
+\begin{enumerate}
+    \item \textbf{Single-Lead ECG Waveform:} Microvolt bio-potentials captured via AD8232 in Einthoven Lead-I, amplified and filtered for cardiac rhythm inspection.
+    \item \textbf{Blood Oxygen Saturation ($\text{SpO}_2$):} Optical photoplethysmography percentage from dual-wavelength absorption (660\,nm red and 880\,nm infrared) via MAX30102.
+    \item \textbf{Heart Rate (BPM):} Arterial pulse frequency derived from optical PPG waveform peaks.
+    \item \textbf{Body Temperature (\circ):} Calibrated surface temperature via waterproof digital DS18B20 1-Wire probe.
+\end{enumerate}
+
+To ensure rigorous execution and prevent scope creep, four additions were formally excluded:
+\begin{itemize}
+    \item \textbf{No MPU6050 Fall Detection:} Conflicts with chest/finger probe placement and causes I2C bus contention.
+    \item \textbf{No GPS Tracking Module:} Indoor satellite attenuation renders GPS ineffective while drawing excessive power ($>80\,\text{mA}$).
+    \item \textbf{No Conversational Chatbot:} Eliminates medical hallucination hazards and latency; telemetry demands verified numerical data.
+    \item \textbf{No Node.js Backend:} Python FastAPI natively unifies async I/O with NumPy, SciPy, and Scikit-learn.
+\end{itemize}
+
+\textbf{Engineering Philosophy:} \textit{The base IoT telemetry pipeline must function reliably before enabling machine learning.} ML serves as an analytical enhancement layer on top of a working embedded system.
+
+\clearpage
+\section{Hardware Architecture and Sensor Interfaces}
+\label{sec:hardware_architecture}
+
+\subsection{Bill of Materials and Hardware Components}
+The hardware node comprises commercial off-the-shelf components selected for compatibility, low power consumption, and signal accuracy. Table~\ref{tab:hardware_bom} details the complete component roster.
+
+\vspace{0.15cm}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tblavail}{\dimexpr\linewidth - 8\tabcolsep - 5\arrayrulewidth\relax}
+\setlength{\wA}{0.22\tblavail}
+\setlength{\wB}{0.20\tblavail}
+\setlength{\wC}{0.38\tblavail}
+\setlength{\wD}{0.20\tblavail}
+\begin{tabular}{|B{\wA}|L{\wB}|L{\wC}|L{\wD}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{Component}} &
+    \multicolumn{1}{M{\wB}|}{\textbf{Interface / Bus}} &
+    \multicolumn{1}{M{\wC}|}{\textbf{Functional Purpose}} &
+    \multicolumn{1}{M{\wD}|}{\textbf{Operating Voltage}} \\
+    \hline
+    ESP32 DevKit V1 & GPIO / ADC / I2C & Central MCU, dual-core Xtensa 32-bit, 2.4\,GHz Wi-Fi client & 3.3\,V / 5\,V (VIN via USB) \\
+    \hline
+    AD8232 ECG Module & Analog ADC1 (GPIO34) & Single-lead ECG instrumentation amplifier with right-leg drive & 3.3\,V Regulated \\
+    \hline
+    3-Lead Electrodes & Snap Cable to AD8232 & Captures cardiac dipole across Right Arm, Left Arm, Right Leg & Bio-potentials ($\mu\text{V}$) \\
+    \hline
+    MAX30102 Module & I2C (\texttt{0x57}) & Integrated pulse oximeter and heart-rate optical biosensor & 3.3\,V Regulated \\
+    \hline
+    DS18B20 Probe & 1-Wire (GPIO18) & Calibrated digital temperature sensor with waterproof probe & 3.3\,V (with $4.7\,\text{k}\Omega$ pull-up) \\
+    \hline
+    0.96'' SSD1306 OLED & I2C (\texttt{0x3C}) & Local edge display showing real-time vitals and connection state & 3.3\,V Regulated \\
+    \hline
+    Active Piezo Buzzer & Digital Out (GPIO25) & Autonomous edge audible alarm for critical vital threshold breaches & 3.3\,V / 5\,V \\
+    \hline
+    Tactile Push Button & Digital In (GPIO14) & Manual emergency / SOS trigger with internal pull-up resistor & Logic Low on Press \\
+    \hline
+    5V DC Power Bank & Micro-USB to VIN & Isolated battery supply eliminating 50\,Hz electrical mains hum & 5.0\,V Regulated DC \\
+    \hline
+\end{tabular}
+\caption{Complete Hardware Component Specifications and Interface Allocation.}
+\label{tab:hardware_bom}
+\end{table}
+
+\subsection{Physical Signal Acquisition and Sensor Responsibilities}
+Each sensor operates across distinct biophysical domains and physical signal regimes:
+\begin{itemize}
+    \item \textbf{AD8232 ECG Front-End:} Extracts tiny cardiac bio-potentials (0.5--4\,mV) amid common-mode electrical noise. It features an integrated instrumentation amplifier ($G = 100$), a two-pole high-pass filter (0.5\,Hz cut-off) to strip baseline wander and electrode half-cell potentials, and an uncommitted op-amp configured as a three-pole low-pass filter (40\,Hz cut-off) to remove high-frequency muscle noise. The amplified output ($0-3.3\,\text{V}$) connects to the ESP32's low-noise ADC1 channel (GPIO34).
+    \item \textbf{MAX30102 Pulse Oximetry and Heart Rate:} Utilizes photoplethysmography (PPG). Two matched LEDs (660\,nm red and 880\,nm infrared) illuminate vascular tissue. An integrated photodetector samples reflected light, converting optical flux into digital values via an internal 18-bit ADC. The ratio of absorbance ratios ($R = \frac{\text{AC}_{660}/\text{DC}_{660}}{\text{AC}_{880}/\text{DC}_{880}}$) determines blood oxygen saturation ($\text{SpO}_2$), while peak-to-peak optical pulse intervals yield heart rate.
+    \item \textbf{DS18B20 Temperature Sensor:} Measures core body surface temperature using an internal bandgap temperature reference. It communicates via Dallas Semiconductor's 1-Wire protocol over a single data line (GPIO18), requiring an external $4.7\,\text{k}\Omega$ pull-up resistor to 3.3\,V. Readings are internally calibrated with a factory accuracy of $\pm 0.5^\circ$C over the range $-10^\circ$C to $+85^\circ$C.
+\end{itemize}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 5: HARDWARE SCHEMATIC & PIN INTERCONNECTION DIAGRAM
+% ==============================================================================
+\subsection{Circuit Schematic and Hardware Pin Interconnection}
+Figure~\ref{fig:circuit_schematic} illustrates the complete hardware interconnection schematic, detailing all pin assignments and shared bus connections on the ESP32 microcontroller.
+
+\vspace{0.15cm}
+\begin{figure}[htbp]
+\centering
+\begin{tcolorbox}[tikzbox, title={Complete Hardware Interconnection and ESP32 Pin Allocation Schematic}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    mcu/.style={rectangle, rounded corners=4pt, draw=darkslate, fill=darkslate!10, line width=1.3pt, minimum width=4.4cm, minimum height=6.2cm, align=center},
+    sensor/.style={rectangle, rounded corners=3pt, draw=hworange, fill=hworange!15, line width=1.0pt, minimum width=3.4cm, minimum height=1.05cm, align=center},
+    disp/.style={rectangle, rounded corners=3pt, draw=feteal, fill=feteal!15, line width=1.0pt, minimum width=3.4cm, minimum height=1.05cm, align=center},
+    act/.style={rectangle, rounded corners=3pt, draw=alertred, fill=alertred!15, line width=1.0pt, minimum width=3.4cm, minimum height=1.0cm, align=center},
+    pinlabel/.style={font=\ttfamily\scriptsize, color=darkslate},
+    sig/.style={line width=1.0pt, -{Latex[length=2.0mm, width=1.5mm]}}
+]
+
+    % Central ESP32 Node
+    \node[mcu] (esp) at (0,0) {
+        \textbf{\large ESP32 DevKit V1}\\[2pt]
+        \footnotesize 30-Pin Dual-Core MCU\\[2pt]
+        \scriptsize 2.4\,GHz Wi-Fi + BLE\\
+        \vspace{3.8cm}
+        \texttt{\scriptsize VIN (5V USB) \textbar\ 3.3V Reg \textbar\ GND}
+    };
+
+    % Left Peripherals (Sensors)
+    \node[sensor, left=2.3cm of esp.north west, yshift=-0.7cm] (ad8232) {
+        \textbf{AD8232 ECG Front-End}\\
+        \scriptsize Pins: 3V3, GND, OUT, LO+, LO-
+    };
+
+    \node[sensor, left=2.3cm of esp.west, yshift=0.1cm] (max30102) {
+        \textbf{MAX30102 ($\text{SpO}_2$ + HR)}\\
+        \scriptsize Pins: VIN(3V3), GND, SDA, SCL
+    };
+
+    \node[sensor, left=2.3cm of esp.south west, yshift=0.7cm] (ds18b20) {
+        \textbf{DS18B20 Temp Probe}\\
+        \scriptsize Pins: VDD(3V3), GND, DQ (1-Wire)
+    };
+
+    % Right Peripherals (Outputs & Controls)
+    \node[disp, right=2.3cm of esp.north east, yshift=-0.7cm] (oled) {
+        \textbf{0.96'' I2C OLED (SSD1306)}\\
+        \scriptsize Pins: VCC(3V3), GND, SDA, SCL
+    };
+
+    \node[act, right=2.3cm of esp.east, yshift=0.1cm] (buzzer) {
+        \textbf{Active Piezo Buzzer}\\
+        \scriptsize Pins: Positive (+), Negative (GND)
+    };
+
+    \node[act, right=2.3cm of esp.south east, yshift=0.7cm] (button) {
+        \textbf{Tactile SOS Button}\\
+        \scriptsize Pins: Terminal A (GPIO), Terminal B (GND)
+    };
+
+    % Left Wiring (Sensors to ESP32)
+    \draw[sig, color=hworange] (ad8232.east) -- node[above, pinlabel]{OUTPUT $\rightarrow$ GPIO34 (ADC1)} node[below, pinlabel]{LO$\pm \rightarrow$ GPIO4, GPIO5} ++(2.3,0);
+    \draw[sig, color=hworange] (max30102.east) -- node[above, pinlabel]{SDA $\rightarrow$ GPIO21} node[below, pinlabel]{SCL $\rightarrow$ GPIO22 (I2C)} ++(2.3,0);
+    \draw[sig, color=hworange] (ds18b20.east) -- node[above, pinlabel]{DQ $\rightarrow$ GPIO18 (1-Wire)} node[below, pinlabel]{Req. $4.7\text{k}\Omega$ Pull-up} ++(2.3,0);
+
+    % Right Wiring (ESP32 to Outputs)
+    \draw[sig, color=feteal] (esp.north east) ++(0,-0.7) -- node[above, pinlabel]{GPIO21 (SDA) \textbar\ GPIO22 (SCL)} node[below, pinlabel]{Shared I2C (\texttt{0x3C})} (oled.west);
+    \draw[sig, color=alertred] (esp.east) ++(0,0.1) -- node[above, pinlabel]{GPIO25 (Digital Alarm Out)} (buzzer.west);
+    \draw[sig, color=darkslate] (button.west) -- node[above, pinlabel]{GPIO14 (Internal Pull-Up)} (esp.south east) ++(0,0.7);
+
+    % Power Rails Box
+    \node[rectangle, draw=darkslate!50, fill=white, rounded corners=2pt, font=\scriptsize\sffamily, align=center, below=0.25cm of esp] (pwr) {
+        \textbf{Power Distribution:} Regulated 3.3\,V from ESP32 powers all biosensors and OLED. \\
+        Isolated 5.0\,V Power Bank to VIN eliminates mains ground loops and 50\,Hz electrical hum.
+    };
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{Complete Hardware Circuit Interconnection and ESP32 Pin Allocation Schematic.}
+\label{fig:circuit_schematic}
+\end{figure}
+
+Table~\ref{tab:pin_map} summarizes the verified hardware GPIO pin allocation on the ESP32.
+
+\vspace{0.1cm}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tblavail}{\dimexpr\linewidth - 8\tabcolsep - 5\arrayrulewidth\relax}
+\setlength{\wA}{0.20\tblavail}
+\setlength{\wB}{0.22\tblavail}
+\setlength{\wC}{0.28\tblavail}
+\setlength{\wD}{0.30\tblavail}
+\begin{tabular}{|B{\wA}|L{\wB}|L{\wC}|L{\wD}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{ESP32 Pin}} & \multicolumn{1}{M{\wB}|}{\textbf{Connected Peripheral}} & \multicolumn{1}{M{\wC}|}{\textbf{Signal Function}} & \multicolumn{1}{M{\wD}|}{\textbf{Hardware Notes}} \\
+    \hline
+    GPIO 34 & AD8232 OUTPUT & Analog ECG input (ADC1\_CH6) & Input-only pin; low noise channel \\
+    \hline
+    GPIO 4, 5 & AD8232 LO+, LO- & Leads-Off detection & Digital inputs; flags detached leads \\
+    \hline
+    GPIO 21 & MAX30102 / OLED & I2C Serial Data (SDA) & Shared I2C bus (\texttt{0x57} \& \texttt{0x3C}) \\
+    \hline
+    GPIO 22 & MAX30102 / OLED & I2C Serial Clock (SCL) & 400\,kHz standard I2C clock \\
+    \hline
+    GPIO 18 & DS18B20 DQ & 1-Wire bidirectional data & Requires external $4.7\,\text{k}\Omega$ pull-up to 3.3\,V \\
+    \hline
+    GPIO 25 & Active Piezo Buzzer & Audible alarm trigger & High = Alarm Active, Low = Silent \\
+    \hline
+    GPIO 14 & SOS Push Button & Emergency alert trigger & Active-low input with internal pull-up \\
+    \hline
+\end{tabular}
+\caption{ESP32 GPIO Pin Assignment and Peripheral Mapping.}
+\label{tab:pin_map}
+\end{table}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 6: SECTION 3 — END-TO-END SYSTEM WORKFLOW & SEQUENCE ARCHITECTURE
+% ==============================================================================
+\section{End-to-End System Workflow and Sequence Architecture}
+\label{sec:system_workflow}
+
+\subsection{Architectural Layer Overview}
+The SmartHealth IoT system is structured into five cohesive architectural layers that work in concert:
+\begin{enumerate}
+    \item \textbf{Perception / Edge Sensing Layer:} Biosensors (AD8232, MAX30102, DS18B20) attached to the patient acquire analog and optical physiological signals.
+    \item \textbf{Edge Computing Layer:} The ESP32 digitizes ECG signals, performs optical pulse calculations, formats batched JSON packets, manages local fallback alarms, and transmits data over Wi-Fi.
+    \item \textbf{Backend Ingestion Layer:} A Python FastAPI server validates incoming packets via Pydantic, controls device authentication, coordinates persistence, and manages active client connections.
+    \item \textbf{Data \& Analytical Layer:} MongoDB Atlas provides persistent time-series storage, while in-memory scikit-learn models perform multivariate anomaly detection and vital trend prediction.
+    \item \textbf{Presentation Layer:} A responsive React single-page dashboard renders live vital cards and animates an oscilloscope-style ECG trace in real time via WebSockets.
+\end{enumerate}
+
+\subsection{End-to-End Telemetry Data Sequence}
+Figure~\ref{fig:e2e_sequence} charts the lifecycle of physiological data from sensor acquisition to browser display.
+
+\vspace{0.15cm}
+\begin{figure}[htbp]
+\centering
+\begin{tcolorbox}[tikzbox, title={End-to-End Telemetry Data Flow Sequence Diagram}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    box/.style={rectangle, rounded corners=3pt, draw=darkslate, fill=boxbg, line width=1pt, align=center, minimum width=2.4cm, minimum height=0.85cm},
+    line/.style={draw=darkslate!40, dashed, line width=0.8pt},
+    msg/.style={-{Latex[length=2.0mm, width=1.5mm]}, line width=1.1pt, color=beblue}
+]
+
+    % Entity Headers
+    \node[box, fill=hworange!20, draw=hworange] (p_esp) at (0,0) {\textbf{ESP32 Node}};
+    \node[box, fill=beblue!20, draw=beblue] (p_api) at (3.5,0) {\textbf{FastAPI Server}};
+    \node[box, fill=dbgreen!20, draw=dbgreen] (p_db) at (7.0,0) {\textbf{MongoDB Atlas}};
+    \node[box, fill=mlpurple!20, draw=mlpurple] (p_ml) at (10.5,0) {\textbf{ML Inference}};
+    \node[box, fill=feteal!20, draw=feteal] (p_react) at (14.0,0) {\textbf{React Client}};
+
+    % Lifelines
+    \draw[line] (p_esp) -- ++(0,-7.0);
+    \draw[line] (p_api) -- ++(0,-7.0);
+    \draw[line] (p_db) -- ++(0,-7.0);
+    \draw[line] (p_ml) -- ++(0,-7.0);
+    \draw[line] (p_react) -- ++(0,-7.0);
+
+    % Steps
+    \draw[msg, color=hworange] (0,-0.8) -- node[above, font=\scriptsize\sffamily]{\textbf{1. POST /api/readings (JSON batch)}} (3.5,-0.8);
+    \draw[msg, color=beblue] (3.5,-1.4) -- node[above, font=\scriptsize\sffamily]{\textbf{2. Pydantic Runtime Validation}} (3.5,-1.9);
+    
+    % Storage & ML
+    \draw[msg, color=dbgreen] (3.5,-2.3) -- node[above, font=\scriptsize\sffamily]{\textbf{3. Insert Document (Async Motor)}} (7.0,-2.3);
+    \draw[msg, color=mlpurple] (3.5,-3.0) -- node[above, font=\scriptsize\sffamily]{\textbf{4. Feature Vector $\rightarrow$ model.predict()}} (10.5,-3.0);
+    \draw[msg, color=mlpurple] (10.5,-3.7) -- node[above, font=\scriptsize\sffamily]{\textbf{5. Return Anomaly Score \& Trend}} (3.5,-3.7);
+
+    % Response
+    \draw[msg, color=hworange, dashed] (3.5,-4.3) -- node[above, font=\scriptsize\sffamily]{\textbf{6. HTTP 200 \{"status": "success"\}}} (0,-4.3);
+
+    % Broadcast
+    \draw[msg, color=feteal] (3.5,-5.0) -- node[above, font=\scriptsize\sffamily]{\textbf{7. WS Broadcast (ECG batch + Vitals + ML Score)}} (14.0,-5.0);
+    \draw[msg, color=feteal] (14.0,-5.7) -- node[above, font=\scriptsize\sffamily]{\textbf{8. Canvas 60 FPS Sweep \& Vitals Update}} (14.0,-6.1);
+
+    % History Query
+    \draw[msg, color=beblue, dashed] (14.0,-6.5) -- node[above, font=\scriptsize\sffamily]{\textbf{9. GET /api/readings/history?limit=100}} (3.5,-6.5);
+    \draw[msg, color=dbgreen] (3.5,-6.8) -- node[above, font=\scriptsize\sffamily]{\textbf{10. Query Indexed BSON Documents}} (7.0,-6.8);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{End-to-End Sequence Diagram of Multi-Parameter Telemetry Flow.}
+\label{fig:e2e_sequence}
+\end{figure}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 7: SECTION 4 — EMBEDDED FIRMWARE WORKFLOW & BATCHING PROTOCOL
+% ==============================================================================
+\section{Embedded Firmware Workflow and Batching Protocol}
+\label{sec:firmware_workflow}
+
+\subsection{Multi-Rate Cyclic Executive and Sampling Architecture}
+The ESP32 firmware executes a non-blocking cyclic executive loop. The system must satisfy two conflicting timing demands: (i) sampling high-frequency analog ECG waveforms at 100--250\,Hz with minimal jitter, and (ii) dispatching HTTP network requests over Wi-Fi, which can take 50--150\,ms.
+
+\textbf{The Chunked Batching Protocol:} At 100\,Hz, sending one HTTP request per ECG point would generate 100 TCP handshakes and HTTP header frames per second, causing immediate network congestion and buffer overruns. Instead, the firmware accumulates 50 consecutive ADC samples in an internal ring buffer over 250\,ms. When full, this array is bundled with the latest $\text{SpO}_2$, heart rate, and temperature readings into a single JSON payload. This reduces network transmissions to 4 requests per second while preserving 100\,Hz waveform fidelity.
+
+\subsection{Firmware Execution Flowchart}
+Figure~\ref{fig:firmware_flowchart} diagrams the edge firmware decision logic.
+
+\vspace{0.15cm}
+\begin{figure}[H]
+\centering
+\begin{tcolorbox}[tikzbox, title={ESP32 Embedded Firmware Execution and Telemetry Batching Flowchart}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    startstop/.style={rectangle, rounded corners=4pt, draw=darkslate, fill=darkslate!15, line width=1.0pt, minimum width=4.8cm, minimum height=0.68cm, align=center},
+    process/.style={rectangle, draw=beblue, fill=beblue!10, line width=0.9pt, minimum width=4.8cm, minimum height=0.68cm, align=center},
+    decision/.style={diamond, aspect=2.0, draw=hworange, fill=hworange!15, line width=0.9pt, align=center, inner sep=2pt, minimum width=3.8cm},
+    arr/.style={-{Latex[length=2.0mm, width=1.5mm]}, line width=1.0pt, color=darkslate}
+]
+
+    % Stage I: System Initialization & Wi-Fi Setup (Left Column)
+    \node[startstop] (start) at (0, 0) {\textbf{System Boot / Power-On}};
+    \node[process, below=0.35cm of start] (init) {\textbf{Hardware Peripheral Init:}\\I2C, ADC1, 1-Wire, OLED, Buzzer};
+    \node[process, below=0.35cm of init] (wifi) {\textbf{Wi-Fi Station Mode Connect}\\SSID / Key / DHCP handshake};
+    \node[decision, below=0.45cm of wifi] (wcheck) {\textbf{Wi-Fi Active?}};
+    \node[process, fill=alertred!10, draw=alertred, below=0.45cm of wcheck] (offline) {\textbf{Offline Mode / Cache:}\\Show OLED alert; local buffer};
+
+    % Stage II: Cyclic Sampling & Batch Telemetry Loop (Right Column)
+    \node[process, fill=feteal!10, draw=feteal] (sample) at (6.8, 0) {\textbf{Sample AD8232 ECG (100\,Hz):}\\Append ADC sample to ring buffer};
+    \node[decision, below=0.45cm of sample] (bcheck) {\textbf{Buffer Full ($N = 50$)?}};
+    \node[process, below=0.45cm of bcheck] (vitals) {\textbf{Read Periodic Vitals:}\\MAX30102 ($\text{SpO}_2$, HR) \& DS18B20};
+    \node[process, below=0.35cm of vitals] (batch) {\textbf{Serialize Canonical JSON:}\\Construct \texttt{HealthReading} payload};
+    \node[process, below=0.35cm of batch] (post) {\textbf{HTTP POST Transmission:}\\Dispatch to \texttt{/api/readings}};
+    \node[decision, below=0.45cm of post] (hcheck) {\textbf{HTTP 200 OK?}};
+    \node[process, fill=dbgreen!10, draw=dbgreen, below=0.45cm of hcheck] (alert) {\textbf{Local OLED / Alert Update:}\\Refresh UI; pulse buzzer on critical};
+
+    % Connections: Stage I
+    \draw[arr] (start) -- (init);
+    \draw[arr] (init) -- (wifi);
+    \draw[arr] (wifi) -- (wcheck);
+    \draw[arr] (wcheck) -- node[right]{\footnotesize\textbf{No}} (offline);
+    \draw[arr] (wcheck.east) -- ++(0.7,0) |- node[near end, above]{\footnotesize\textbf{Yes (Online)}} (sample.west);
+    \draw[arr] (offline.east) -- ++(0.7,0) |- (sample.west);
+
+    % Connections: Stage II
+    \draw[arr] (sample) -- (bcheck);
+    \draw[arr] (bcheck) -- node[right]{\footnotesize\textbf{Yes}} (vitals);
+    \draw[arr] (bcheck.west) -- ++(-0.6,0) |- node[near start, above]{\footnotesize\textbf{No}} (sample.west);
+    \draw[arr] (vitals) -- (batch);
+    \draw[arr] (batch) -- (post);
+    \draw[arr] (post) -- (hcheck);
+    \draw[arr] (hcheck) -- node[right]{\footnotesize\textbf{Yes}} (alert);
+    \draw[arr] (hcheck.west) -- ++(-0.6,0) |- node[near start, above]{\footnotesize\textbf{No (Retry)}} (alert.west);
+    \draw[arr] (alert.east) -- ++(0.7,0) |- (sample.east);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{ESP32 Embedded Firmware Execution and Telemetry Batching Flowchart.}
+\label{fig:firmware_flowchart}
+\end{figure}
+
+\subsection{Canonical JSON Telemetry Payload Structure}
+The ESP32 formats sensor readings into the following canonical JSON schema:
+\begin{tcolorbox}[colback=inlinecodebg!40, colframe=darkslate!40, arc=2pt, boxrule=0.6pt, left=5pt, right=5pt, top=3pt, bottom=3pt]
+\footnotesize\ttfamily
+\{\\
+\quad "device\_id": "ESP32\_001",\\
+\quad "heart\_rate": 76.0,\\
+\quad "spo2": 98.0,\\
+\quad "temperature": 36.7,\\
+\quad "ecg\_samples": [512, 518, 525, 540, 610, 720, 850, 650, 530, 515, ...]\\
+\}
+\end{tcolorbox}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 8: SECTION 5 — BACKEND INGESTION, API & DATABASE WORKFLOW
+% ==============================================================================
+\section{Backend Ingestion, API and Database Workflow}
+\label{sec:backend_workflow}
+
+\subsection{FastAPI Ingestion Architecture and Processing Pipeline}
+The backend runs on \textbf{Python FastAPI} using the ASGI server Uvicorn. When a payload arrives at \texttt{POST /api/readings}, FastAPI executes an asynchronous eight-stage pipeline, illustrated in Figure~\ref{fig:backend_pipeline}.
+
+\vspace{0.15cm}
+\begin{figure}[H]
+\centering
+\begin{tcolorbox}[tikzbox, title={FastAPI Telemetry Ingestion and Real-Time Processing Pipeline}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    stepnode/.style={rectangle, rounded corners=3pt, draw=beblue, fill=beblue!10, line width=1.0pt, minimum width=6.6cm, minimum height=0.72cm, align=center},
+    arr/.style={-{Latex[length=2.0mm, width=1.5mm]}, line width=1.1pt, color=darkslate}
+]
+
+    % Left Column (Steps 1 to 4)
+    \node[stepnode, fill=darkslate!10, draw=darkslate] (s1) at (0,0) {\textbf{1. HTTP Request Arrival:}\\\footnotesize Payload at \texttt{POST /api/readings}};
+    \node[stepnode, fill=beblue!15, below=0.25cm of s1] (s2) {\textbf{2. Device Authentication:}\\\footnotesize Validate \texttt{device\_id} in registry};
+    \node[stepnode, fill=beblue!20, below=0.25cm of s2] (s3) {\textbf{3. Pydantic Validation:}\\\footnotesize Enforce bounds ($30 \le \text{HR} \le 220$)};
+    \node[stepnode, fill=dbgreen!20, draw=dbgreen, below=0.25cm of s3] (s4) {\textbf{4. Async MongoDB Persistence:}\\\footnotesize Non-blocking \texttt{motor} write};
+
+    % Right Column (Steps 5 to 8)
+    \node[stepnode, fill=alertred!15, draw=alertred, right=1.2cm of s1] (s5) {\textbf{5. Safety Evaluation:}\\\footnotesize Check bounds ($\text{SpO}_2 < 90\%$)};
+    \node[stepnode, fill=mlpurple!15, draw=mlpurple, below=0.25cm of s5] (s6) {\textbf{6. ML Inference Engine:}\\\footnotesize Isolation Forest anomaly score};
+    \node[stepnode, fill=feteal!20, draw=feteal, below=0.25cm of s6] (s7) {\textbf{7. WebSocket Broadcasting:}\\\footnotesize Push packet via \texttt{/ws/health}};
+    \node[stepnode, fill=darkslate!15, draw=darkslate, below=0.25cm of s7] (s8) {\textbf{8. Dispatch HTTP 200:}\\\footnotesize Return success acknowledgment};
+
+    % Left connections
+    \draw[arr] (s1) -- (s2);
+    \draw[arr] (s2) -- (s3);
+    \draw[arr] (s3) -- (s4);
+
+    % Bridge from step 4 to 5
+    \draw[arr] (s4.east) -- ++(0.6,0) |- (s5.west);
+
+    % Right connections
+    \draw[arr] (s5) -- (s6);
+    \draw[arr] (s6) -- (s7);
+    \draw[arr] (s7) -- (s8);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{FastAPI Ingestion and Real-Time Analytics Pipeline.}
+\label{fig:backend_pipeline}
+\end{figure}
+
+\subsection{REST API and WebSocket Interface Specifications}
+Table~\ref{tab:api_specs} defines the endpoints exposed by the FastAPI server.
+
+\vspace{0.1cm}
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tblavail}{\dimexpr\linewidth - 8\tabcolsep - 5\arrayrulewidth\relax}
+\setlength{\wA}{0.12\tblavail}
+\setlength{\wB}{0.34\tblavail}
+\setlength{\wC}{0.20\tblavail}
+\setlength{\wD}{0.34\tblavail}
+\begin{tabular}{|B{\wA}|L{\wB}|L{\wC}|L{\wD}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{Verb}} &
+    \multicolumn{1}{M{\wB}|}{\textbf{Route Path}} &
+    \multicolumn{1}{M{\wC}|}{\textbf{Input Parameters}} &
+    \multicolumn{1}{M{\wD}|}{\textbf{Output Description \& Status}} \\
+    \hline
+    \texttt{POST} & \texttt{/api/readings} & JSON Body (\texttt{HealthReading}) & Returns \texttt{\{"status": "success"\}} (201 Created) \\
+    \hline
+    \texttt{GET} & \texttt{/api/readings/latest} & Query: \texttt{?device\_id=...} & Returns latest vitals, anomaly score, status (200 OK) \\
+    \hline
+    \texttt{GET} & \texttt{/api/readings/history} & Query: \texttt{?limit=100} & Paginated historical readings array (200 OK) \\
+    \hline
+    \texttt{POST} & \texttt{/api/devices/register} & JSON Body (\texttt{device\_id}) & Registers hardware node; returns key (200 OK) \\
+    \hline
+    \texttt{GET} & \texttt{/api/predictions/latest} & Query: \texttt{?device\_id=...} & Returns current ML anomaly score \& trend (200 OK) \\
+    \hline
+    \texttt{WS} & \texttt{/ws/health} & WebSocket handshake & Full-duplex JSON stream of ECG \& vitals (101 Switching) \\
+    \hline
+\end{tabular}
+\caption{REST API and WebSocket Endpoint Specifications.}
+\label{tab:api_specs}
+\end{table}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 9: SECTION 5 (CONT.) — DATABASE SCHEMA & DATA MODELS
+% ==============================================================================
+\subsection{MongoDB Document Schema Design}
+The database layer uses \textbf{MongoDB Atlas} via the asynchronous Python driver \texttt{motor}. The document-oriented BSON format naturally accommodates variable-length ECG sample arrays alongside scalar vitals. Table~\ref{tab:mongo_schema} details the four collections.
+
+\vspace{0.15cm}
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tblavail}{\dimexpr\linewidth - 8\tabcolsep - 5\arrayrulewidth\relax}
+\setlength{\wA}{0.18\tblavail}
+\setlength{\wB}{0.22\tblavail}
+\setlength{\wC}{0.18\tblavail}
+\setlength{\wD}{0.42\tblavail}
+\begin{tabular}{|B{\wA}|L{\wB}|L{\wC}|L{\wD}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{Collection}} &
+    \multicolumn{1}{M{\wB}|}{\textbf{Field Name}} &
+    \multicolumn{1}{M{\wC}|}{\textbf{BSON Type}} &
+    \multicolumn{1}{M{\wD}|}{\textbf{Field Description and Indexing Rules}} \\
+    \hline
+    \textbf{readings} & \texttt{\_id} & \texttt{ObjectId} & Unique MongoDB document identifier (Primary Key) \\
+    & \texttt{device\_id} & \texttt{String} & Node identifier (e.g., \texttt{"ESP32\_001"}); indexed \\
+    & \texttt{heart\_rate} & \texttt{Double} & Heart rate in BPM ($30.0 - 220.0$) \\
+    & \texttt{spo2} & \texttt{Double} & Blood oxygen saturation percentage ($70.0 - 100.0$) \\
+    & \texttt{temperature} & \texttt{Double} & Body surface temperature in Celsius ($30.0 - 45.0$) \\
+    & \texttt{ecg\_samples} & \texttt{Array[Int32]} & Batch of digitized AD8232 ADC samples (50 ints) \\
+    & \texttt{timestamp} & \texttt{Date} & UTC ISO-8601 insertion time; compound index \\
+    \hline
+    \textbf{devices} & \texttt{device\_id} & \texttt{String} & Unique hardware node serial identifier (Indexed) \\
+    & \texttt{firmware\_rev} & \texttt{String} & Installed firmware version (e.g., \texttt{"v1.0.4"}) \\
+    & \texttt{status} & \texttt{String} & Node state: \texttt{"ONLINE"}, \texttt{"OFFLINE"}, \texttt{"ERROR"} \\
+    & \texttt{last\_seen} & \texttt{Date} & Timestamp of most recent valid packet transmission \\
+    \hline
+    \textbf{alerts} & \texttt{alert\_id} & \texttt{ObjectId} & Unique alarm incident identifier \\
+    & \texttt{device\_id} & \texttt{String} & Originating hardware unit identifier \\
+    & \texttt{severity} & \texttt{String} & Incident severity level: \texttt{"WARNING"}, \texttt{"CRITICAL"} \\
+    & \texttt{message} & \texttt{String} & Alarm description (e.g., \texttt{"Low SpO2: 88\% detected"}) \\
+    & \texttt{timestamp} & \texttt{Date} & Timestamp when alert was logged \\
+    \hline
+    \textbf{predictions} & \texttt{pred\_id} & \texttt{ObjectId} & Unique analytical record identifier \\
+    & \texttt{anomaly\_score} & \texttt{Double} & Normalized Isolation Forest score ($0.0 - 1.0$) \\
+    & \texttt{trend\_vector} & \texttt{Object} & Vital slopes: \texttt{\{"hr\_slope", "spo2\_slope"\}} \\
+    & \texttt{timestamp} & \texttt{Date} & Timestamp corresponding to evaluated inference window \\
+    \hline
+\end{tabular}
+\caption{MongoDB Document Collections and Field Definitions.}
+\label{tab:mongo_schema}
+\end{table}
+
+\subsection{Pydantic Data Models and Schema Validation}
+FastAPI automatically enforces data integrity through Pydantic models. Any incoming payload with out-of-range numerical values, missing identifiers, or corrupt data types is rejected at the network boundary with HTTP 422 Unprocessable Entity, shielding the database and ML pipeline from corrupt inputs.
+
+\begin{tcolorbox}[colback=inlinecodebg!40, colframe=darkslate!40, arc=2pt, boxrule=0.6pt, left=5pt, right=5pt, top=3pt, bottom=3pt]
+\footnotesize\ttfamily
+class HealthReading(BaseModel):\\
+\quad device\_id: str = Field(..., example="ESP32\_001")\\
+\quad heart\_rate: float = Field(..., ge=30.0, le=220.0)\\
+\quad spo2: float = Field(..., ge=70.0, le=100.0)\\
+\quad temperature: float = Field(..., ge=30.0, le=45.0)\\
+\quad ecg\_samples: List[int] = Field(..., min\_items=10, max\_items=200)
+\end{tcolorbox}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 10: SECTION 6 — MACHINE LEARNING WORKFLOW: ANOMALY & TREND
+% ==============================================================================
+\section{Machine Learning Workflow: Anomaly Detection and Trends}
+\label{sec:ml_workflow}
+
+\subsection{Decoupled Machine Learning Architecture}
+To ensure system stability, \textbf{offline model training} is kept completely separate from \textbf{real-time cloud inference}, as shown in Figure~\ref{fig:ml_workflow}.
+\begin{itemize}
+    \item \textbf{Offline Training (\texttt{ml/train.py}):} The model is trained offline on baseline physiological datasets (such as public telemetry or synthesized baselines) using scikit-learn. The trained model is serialized into \texttt{model.pkl} via Joblib.
+    \item \textbf{Online Inference (\texttt{prediction\_service.py}):} During FastAPI startup, \texttt{model.pkl} is loaded into RAM once. Incoming sensor readings are transformed into feature vectors and scored in sub-5\,ms, with results returned during the active request cycle.
+\end{itemize}
+
+\vspace{0.15cm}
+\begin{figure}[htbp]
+\centering
+\begin{tcolorbox}[tikzbox, title={Decoupled Machine Learning Architecture: Offline Training vs. Online Inference}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    box/.style={rectangle, rounded corners=3pt, draw=darkslate, fill=boxbg, line width=1pt, align=center, minimum height=0.85cm, inner sep=4pt},
+    mlbox/.style={box, draw=mlpurple, fill=mlpurple!15},
+    arr/.style={-{Latex[length=2.0mm, width=1.5mm]}, line width=1.1pt, color=darkslate}
+]
+
+    % Training Pipeline Subgraph (Left)
+    \node[draw=darkslate!40, dashed, fill=darkslate!5, rounded corners=4pt, inner sep=6pt, fit={(0,0) (6.2,-4.4)}] (trainbg) {};
+    \node[font=\bfseries\sffamily\color{mlpurple}, anchor=north west] at (trainbg.north west) {\quad OFFLINE TRAINING (\texttt{ml/train.py})};
+
+    \node[box] (dset) at (3.1,-0.8) {\textbf{Baseline Telemetry Dataset}\\\footnotesize (Public / Synthesized Data)};
+    \node[box, below=0.38cm of dset] (feat) {\textbf{Feature Engineering}\\\footnotesize Mean, Std Dev, ECG RMS, Slope};
+    \node[mlbox, below=0.38cm of feat] (train) {\textbf{Model Training}\\\footnotesize Scikit-learn Isolation Forest};
+    \node[mlbox, fill=mlpurple!30, below=0.38cm of train] (pkl) {\textbf{Serialized Artifact (\texttt{model.pkl})}\\\footnotesize Joblib / Pickle Export};
+
+    % Inference Pipeline Subgraph (Right)
+    \node[draw=darkslate!40, dashed, fill=darkslate!5, rounded corners=4pt, inner sep=6pt, fit={(7.6,0) (14.0,-4.4)}] (infbg) {};
+    \node[font=\bfseries\sffamily\color{beblue}, anchor=north west] at (infbg.north west) {\quad REAL-TIME INFERENCE (\texttt{FastAPI App})};
+
+    \node[box, fill=hworange!15, draw=hworange] (esp) at (10.8,-0.8) {\textbf{Live ESP32 Stream}\\\footnotesize Real-time incoming vital batch};
+    \node[box, fill=beblue!15, draw=beblue, below=0.38cm of esp] (fastapi) {\textbf{FastAPI Ingestion Loop}\\\footnotesize Loads \texttt{model.pkl} into RAM};
+    \node[mlbox, below=0.38cm of fastapi] (infer) {\textbf{Inference Service}\\\footnotesize Fast sub-5\,ms \texttt{model.predict()}};
+    \node[box, fill=feteal!15, draw=feteal, below=0.38cm of infer] (dash) {\textbf{React Dashboard Broadcast}\\\footnotesize Anomaly score \& trend flags};
+
+    % Training Connections
+    \draw[arr] (dset) -- (feat);
+    \draw[arr] (feat) -- (train);
+    \draw[arr] (train) -- (pkl);
+
+    % Bridge Between Training and Inference
+    \draw[arr, line width=1.3pt, color=mlpurple] (pkl.east) -- node[above, font=\scriptsize\bfseries\sffamily]{Load at Startup} ++(1.4,0) |- (fastapi.west);
+
+    % Inference Connections
+    \draw[arr] (esp) -- (fastapi);
+    \draw[arr] (fastapi) -- (infer);
+    \draw[arr] (infer) -- (dash);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{Decoupled Machine Learning Workflow: Offline Training vs. Online Inference.}
+\label{fig:ml_workflow}
+\end{figure}
+
+\subsection{Multivariate Anomaly Detection and Trend Projection}
+\textbf{Feature 1: Isolation Forest Anomaly Detection:} Traditional threshold checks only flag values after they cross fixed limits. The Isolation Forest isolates anomalies using random recursive partitioning. In a decision tree ensemble, outlier physiological points require noticeably fewer splits to isolate than normal patterns. Feature vectors are extracted across a sliding 30-second window:
+\begin{equation}
+    \mathbf{x} = \left[ \mu_{\text{HR}}, \; \sigma_{\text{HR}}, \; \mu_{\text{SpO}_2}, \; \mu_{\text{Temp}}, \; \Delta \text{Temp}, \; \text{RMS}_{\text{ECG}} \right]
+\end{equation}
+The model computes a normalized anomaly score from $0.0$ (nominal) to $1.0$ (high anomaly).
+
+\textbf{Feature 2: Multi-Vital Trend Projection:} The system calculates linear slopes ($\frac{d\text{HR}}{dt}$, $\frac{d\text{SpO}_2}{dt}$, $\frac{d\text{Temp}}{dt}$) over sliding 15-minute buffers. For instance, a rising heart rate combined with declining oxygenation triggers an elevated risk indicator before any single variable hits a critical threshold.
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 11: SECTION 7 — FRONTEND REAL-TIME MONITORING DASHBOARD WORKFLOW
+% ==============================================================================
+\section{Frontend Real-Time Monitoring Dashboard Workflow}
+\label{sec:frontend_workflow}
+
+\subsection{React Dashboard Architecture and State Management}
+The user interface is built as a single-page application using \textbf{React 18}, \textbf{Vite}, and \textbf{Tailwind CSS}. It communicates with the backend via two complementary channels:
+\begin{enumerate}
+    \item \textbf{Full-Duplex WebSocket Client (\texttt{/ws/health}):} Continuously receives live 50-sample ECG arrays, updated vitals, and ML anomaly indices without polling latency.
+    \item \textbf{Asynchronous REST Client (Axios):} Fetches historical telemetry records and patient metadata on demand.
+\end{enumerate}
+
+\subsection{Component Hierarchy and State Distribution Tree}
+Figure~\ref{fig:component_tree} shows the React component hierarchy.
+
+\vspace{0.15cm}
+\begin{figure}[htbp]
+\centering
+\begin{tcolorbox}[tikzbox, title={React Component Hierarchy and State Flow Tree}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    cnode/.style={rectangle, rounded corners=3pt, draw=feteal, fill=feteal!15, line width=1.0pt, align=center, minimum height=0.75cm, inner sep=4pt},
+    edge/.style={draw=darkslate, line width=1.0pt}
+]
+
+    % Tree Nodes
+    \node[cnode, fill=darkslate!20, draw=darkslate] (app) at (0,0) {\textbf{App.jsx} (Root Router \& Context)};
+    
+    \node[cnode, below left=0.8cm and 2.0cm of app] (nav) {\textbf{Navbar.jsx}\\\scriptsize Connection Status};
+    \node[cnode, below=0.8cm of app] (dash) {\textbf{Dashboard.jsx}\\\scriptsize State, Hooks \& WS};
+    \node[cnode, below right=0.8cm and 2.0cm of app] (hist) {\textbf{History.jsx}\\\scriptsize REST Historical Table};
+
+    \node[cnode, below left=0.8cm and 1.8cm of dash] (ecg) {\textbf{ECGChart.jsx}\\\scriptsize HTML5 Canvas Trace};
+    \node[cnode, below left=0.8cm and -0.2cm of dash] (cards) {\textbf{VitalsGrid.jsx}\\\scriptsize HR, $\text{SpO}_2$, Temp};
+    \node[cnode, below right=0.8cm and -0.2cm of dash] (pred) {\textbf{PredictionCard.jsx}\\\scriptsize ML Anomaly \& Trend};
+    \node[cnode, below right=0.8cm and 1.8cm of dash] (alert) {\textbf{AlertBanner.jsx}\\\scriptsize Threshold Alerts};
+
+    % Connections
+    \draw[edge] (app) -- (nav);
+    \draw[edge] (app) -- (dash);
+    \draw[edge] (app) -- (hist);
+    \draw[edge] (dash) -- (ecg);
+    \draw[edge] (dash) -- (cards);
+    \draw[edge] (dash) -- (pred);
+    \draw[edge] (dash) -- (alert);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{React Component Hierarchy and Telemetry Distribution Tree.}
+\label{fig:component_tree}
+\end{figure}
+
+\subsection{High-Performance HTML5 Canvas Waveform Rendering Engine}
+Rendering ECG signals at 100\,Hz using standard DOM or SVG elements causes severe browser layout thrashing. SmartHealth IoT instead implements a custom \textbf{HTML5 Canvas} oscilloscope engine inside \texttt{ECGChart.jsx}:
+\begin{itemize}
+    \item \textbf{Decoupled Ingestion and Rendering:} Incoming 50-sample batches are pushed into a client-side circular ring buffer without triggering React component re-renders.
+    \item \textbf{Moving Sweep-Bar Display:} A GPU-accelerated \texttt{requestAnimationFrame} loop renders the trace at a stable 60\,FPS. An animated vertical sweep line redraws new samples over old ones from left to right, mimicking clinical bedside monitors without memory leaks or UI freezing.
+\end{itemize}
+
+\par\vspace{8pt}
+
+
+% ==============================================================================
+% PAGE 12: SECTION 7 (CONT.) — DASHBOARD UI WIREFRAME MOCKUP
+% ==============================================================================
+\subsection{Dashboard UI Wireframe and Clinical Display Layout}
+Figure~\ref{fig:dashboard_wireframe} presents the design layout of the clinician monitoring dashboard.
+
+\vspace{0.15cm}
+\begin{figure}[htbp]
+\centering
+\begin{tcolorbox}[tikzbox, title={Clinical React Monitoring Dashboard Wireframe Layout}, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    panel/.style={rectangle, draw=darkslate!80, fill=boxbg, line width=1pt, rounded corners=3pt},
+    card/.style={rectangle, draw=darkslate!50, fill=white, line width=0.8pt, rounded corners=2pt, align=center, inner sep=3pt}
+]
+
+    % Main Frame
+    \draw[panel, fill=darkslate!5, line width=1.1pt] (0,0) rectangle (14.6,8.2);
+
+    % Header Bar
+    \draw[panel, fill=darkslate, text=white] (0.2,7.3) rectangle (14.4,8.0);
+    \node[anchor=west, text=white, font=\bfseries\sffamily\small] at (0.4,7.65) {SmartHealth IoT \textbar\ Real-Time Clinical Telemetry Dashboard};
+    \node[anchor=east, text=dbgreen!30, font=\ttfamily\scriptsize] at (14.2,7.65) {[STATUS: ONLINE \textbar\ WS: CONNECTED \textbar\ DEVICE: ESP32\_001]};
+
+    % Top Vitals Cards Row
+    \node[card, draw=alertred, minimum width=4.3cm, minimum height=1.5cm] at (2.4, 6.3) {
+        \textbf{\textcolor{alertred}{\textbullet\ Heart Rate (BPM)}}\\[1pt]
+        {\Large\textbf{76}} \normalsize\ BPM\\[1pt]
+        \scriptsize Normal Rhythm (MAX30102)
+    };
+
+    \node[card, draw=beblue, minimum width=4.3cm, minimum height=1.5cm] at (7.3, 6.3) {
+        \textbf{\textcolor{beblue}{\textbullet\ Oxygen Saturation ($\text{SpO}_2$)}}\\[1pt]
+        {\Large\textbf{98\%}} \normalsize\ Saturation\\[1pt]
+        \scriptsize Optimal Perfusion (MAX30102)
+    };
+
+    \node[card, draw=hworange, minimum width=4.3cm, minimum height=1.5cm] at (12.2, 6.3) {
+        \textbf{\textcolor{hworange}{\textbullet\ Body Temperature}}\\[1pt]
+        {\Large\textbf{36.7$^\circ$}} \normalsize\ Celsius\\[1pt]
+        \scriptsize Normothermic (DS18B20)
+    };
+
+    % Central ECG Canvas Area
+    \draw[panel, fill=black!90] (0.3, 2.0) rectangle (9.8, 5.2);
+    \node[anchor=north west, text=dbgreen, font=\ttfamily\scriptsize] at (0.5, 5.0) {LIVE ECG OSCILLOSCOPE (AD8232 Lead-I -- 100\,Hz Stream)};
+    
+    % Simulated ECG Trace
+    \draw[dbgreen, line width=1.2pt] (0.6,3.3) -- (1.6,3.3) -- (1.8,3.5) -- (2.0,2.6) -- (2.2,4.6) -- (2.4,2.8) -- (2.6,3.6) -- (3.6,3.3) 
+        -- (4.6,3.3) -- (4.8,3.5) -- (5.0,2.6) -- (5.2,4.6) -- (5.4,2.8) -- (5.6,3.6) -- (6.6,3.3)
+        -- (7.6,3.3) -- (7.8,3.5) -- (8.0,2.6) -- (8.2,4.6) -- (8.4,2.8) -- (8.6,3.6) -- (9.6,3.3);
+
+    % Right Side: AI Analytics Card
+    \draw[panel, fill=mlpurple!10, draw=mlpurple] (10.1, 2.0) rectangle (14.3, 5.2);
+    \node[anchor=north west, font=\bfseries\sffamily\small, text=mlpurple] at (10.3, 5.0) {AI / ML Analytics};
+    \node[anchor=north west, font=\scriptsize\sffamily, align=left] at (10.3, 4.5) {
+        \textbf{Model:} Isolation Forest\\
+        \textbf{Anomaly Score:} 0.12 (Nominal)\\
+        \textbf{Status:} \textcolor{dbgreen}{\textbf{NORMAL PATTERN}}\\
+        \vspace{2pt}\\
+        \textbf{Trend Projection (30m):}\\
+        \textbullet\ HR: Stable ($\pm 2\,\text{BPM}$)\\
+        \textbullet\ $\text{SpO}_2$: Stable ($98\%$)\\
+        \textbullet\ Temp: $+0.1^\circ$C/hr\\
+        \vspace{2pt}\\
+        \textbf{Risk Index:} \textcolor{dbgreen}{\textbf{LOW (0.08)}}
+    };
+
+    % Bottom Diagnostic Panel
+    \draw[panel, fill=white] (0.3, 0.3) rectangle (14.3, 1.7);
+    \node[anchor=north west, font=\bfseries\sffamily\footnotesize, text=darkslate] at (0.5, 1.5) {System Diagnostic \& Safety Alarm Event Log};
+    \node[anchor=north west, font=\ttfamily\tiny, align=left, color=darkslate!80] at (0.5, 1.15) {
+        {[2026-10-06 10:14:02 UTC]} SYSTEM INITIALIZED: Connected to ESP32\_001 via WebSocket (\texttt{/ws/health}).\\
+        {[2026-10-06 10:14:03 UTC]} SENSOR CALIBRATION: MAX30102 PPG pulse detected; SpO2 lock at 98\%, HR 76 BPM.\\
+        {[2026-10-06 10:14:05 UTC]} ML INFERENCE: Baseline feature vectors verified. Anomaly score 0.12 within nominal limits.
+    };
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\caption{Wireframe Layout of the SmartHealth IoT Clinical React Dashboard.}
+\label{fig:dashboard_wireframe}
+\end{figure}
+
+\clearpage
+
+% ==============================================================================
+% PAGE 14: SECTION 8 — IMPLEMENTATION PLAN, RACI & MILESTONES
+% ==============================================================================
+\section{Implementation Plan, Milestones and Team RACI}
+\label{sec:implementation_plan}
+
+\subsection{Eight-Week Implementation Roadmap and Critical Milestones}
+The project follows an intensive 8-week execution plan (October -- November 2026). Hardware and backend pipelines develop concurrently during Weeks 1--2, merge into full-stack integration by Week 4, and reach the \textbf{MVP Checkpoint at Week 5} (Figure~\ref{fig:milestone_timeline}).
+
+\vspace{0.08cm}
+\begin{figure}[H]
+\centering
+\begin{tcolorbox}[tikzbox, title={Critical Milestone Progression Timeline (Weeks 1 to 8)}, left=4pt, right=4pt, top=3pt, bottom=3pt, width=\linewidth]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    font=\sffamily\small,
+    mstone/.style={rectangle, rounded corners=3pt, draw=beblue, fill=beblue!15, line width=1.0pt, align=center, minimum width=2.1cm, minimum height=0.62cm},
+    mvp/.style={rectangle, rounded corners=4pt, draw=alertred, fill=alertred!20, line width=1.3pt, align=center, minimum width=2.3cm, minimum height=0.72cm},
+    arr/.style={-{Latex[length=2.0mm, width=1.5mm]}, line width=1.2pt, color=darkslate}
+]
+
+    \node[mstone] (m1) at (0,0) {\textbf{M1 (W1)}\\\footnotesize Sensor Sanity};
+    \node[mstone] (m2) at (2.8,0) {\textbf{M2 (W2)}\\\footnotesize Wi-Fi \& DB};
+    \node[mstone] (m3) at (5.6,0) {\textbf{M3 (W3)}\\\footnotesize WebSocket Stream};
+    \node[mstone] (m4) at (8.4,0) {\textbf{M4 (W4)}\\\footnotesize Live Canvas UI};
+    \node[mvp] (m5) at (11.5,0) {\textbf{\textcolor{alertred}{M5 (W5)}}\\\textbf{\textcolor{alertred}{MVP CHECK}}};
+    
+    \node[mstone, below=0.55cm of m5] (m6) {\textbf{M6 (W6)}\\\footnotesize ML Anomaly Loaded};
+    \node[mstone, left=2.3cm of m6] (m7) {\textbf{M7 (W7)}\\\footnotesize Cloud Prod Deploy};
+    \node[mstone, fill=dbgreen!20, draw=dbgreen, left=2.3cm of m7] (m8) {\textbf{M8 (W8)}\\\footnotesize Final Report \& Viva};
+
+    \draw[arr] (m1) -- (m2);
+    \draw[arr] (m2) -- (m3);
+    \draw[arr] (m3) -- (m4);
+    \draw[arr] (m4) -- (m5);
+    \draw[arr] (m5) -- (m6);
+    \draw[arr] (m6) -- (m7);
+    \draw[arr] (m7) -- (m8);
+
+\end{tikzpicture}%
+}
+\end{tcolorbox}
+\vspace{-0.25cm}
+\caption{Milestone Progression Timeline from Inception to Final Defense.}
+\label{fig:milestone_timeline}
+\end{figure}
+
+\vspace{0.05cm}
+\subsection{Team Roles, Responsibilities and RACI Governance Matrix}
+Table~\ref{tab:raci_matrix} defines project task ownership across the five-member team using RACI (\textbf{R}esponsible, \textbf{A}ccountable, \textbf{C}onsulted, \textbf{I}nformed).
+
+\vspace{0.06cm}
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+\setlength{\tblavail}{\dimexpr\linewidth - 12\tabcolsep - 7\arrayrulewidth\relax}
+\setlength{\wA}{0.30\tblavail}
+\setlength{\wB}{0.14\tblavail}
+\setlength{\wC}{0.14\tblavail}
+\setlength{\wD}{0.14\tblavail}
+\setlength{\wE}{0.14\tblavail}
+\begin{tabular}{|B{\wA}|C{\wB}|C{\wC}|C{\wD}|C{\wE}|C{0.14\tblavail}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{Functional Domain}} &
+    \multicolumn{1}{M{\wB}|}{\textbf{Soumyajit}} &
+    \multicolumn{1}{M{\wC}|}{\textbf{Bikkram}} &
+    \multicolumn{1}{M{\wD}|}{\textbf{Debanjan}} &
+    \multicolumn{1}{M{\wE}|}{\textbf{Biraj}} &
+    \multicolumn{1}{M{0.14\tblavail}|}{\textbf{Sayan}} \\
+    \hline
+    Sensor Interfacing \& Circuits & A & \textbf{R} & C & I & I \\
+    \hline
+    ESP32 C++ Firmware \& Wi-Fi & \textbf{R} & C & C & I & I \\
+    \hline
+    FastAPI REST \& Validation & C & I & \textbf{R} & C & C \\
+    \hline
+    MongoDB Atlas Data Layer & I & I & \textbf{R} & I & C \\
+    \hline
+    WebSocket Distribution Engine & I & I & A & \textbf{R} & I \\
+    \hline
+    React UI \& Canvas ECG Plotter & C & I & C & \textbf{R} & I \\
+    \hline
+    ML Anomaly \& Trend Modeling & C & I & C & I & \textbf{R} \\
+    \hline
+    System Testing \& QA & A & C & R & C & \textbf{R} \\
+    \hline
+    Technical Report \& Presentation & A & R & R & \textbf{R} & R \\
+    \hline
+\end{tabular}
+\caption{Team Task Allocation and RACI Governance Matrix.}
+\label{tab:raci_matrix}
+\end{table}
+
+\clearpage
+
+% ==============================================================================
+% PAGE 15: RISKS, CONCLUSION & OFFICIAL SIGN-OFF
+% ==============================================================================
+\subsection{Engineering Risk Mitigation Matrix}
+Table~\ref{tab:risk_matrix} highlights primary technical challenges and their engineering mitigations.
+
+\vspace{0.08cm}
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.04}
+\setlength{\tblavail}{\dimexpr\linewidth - 6\tabcolsep - 4\arrayrulewidth\relax}
+\setlength{\wA}{0.28\tblavail}
+\setlength{\wB}{0.14\tblavail}
+\setlength{\wC}{0.58\tblavail}
+\begin{tabular}{|B{\wA}|C{\wB}|L{\wC}|}
+    \hline
+    \multicolumn{1}{|M{\wA}|}{\textbf{Technical Risk}} &
+    \multicolumn{1}{M{\wB}|}{\textbf{Severity}} &
+    \multicolumn{1}{M{\wC}|}{\textbf{Concrete Engineering Mitigation Strategy}} \\
+    \hline
+    AD8232 ECG Noise / 50\,Hz Hum & High & Power ESP32 via isolated 5V power bank (breaks mains ground loops); apply digital 50\,Hz notch and 0.5--40\,Hz bandpass filtering. \\
+    \hline
+    MAX30102 Ambient Light & Medium & Enclose sensor in an opaque velcro finger clip; use AC/DC ratio checks to reject motion-corrupted optical data. \\
+    \hline
+    I2C Bus Collision & High & Separate 7-bit addresses verified (\texttt{0x3C} OLED, \texttt{0x57} MAX30102); install $4.7\,\text{k}\Omega$ bus pull-ups; keep I2C transactions non-blocking. \\
+    \hline
+    Wi-Fi Telemetry Dropouts & Medium & Circular ring buffer in ESP32 RAM caches up to 10 seconds of vitals; auto-reconnect backoff prevents loop hangs. \\
+    \hline
+    High-Frequency Browser Lag & High & Batch ECG samples into 50-integer chunks (4 POSTs/sec); plot via HTML5 Canvas using GPU-accelerated \texttt{requestAnimationFrame}. \\
+    \hline
+    ML Schedule Delay (Fallback) & Low & Decoupled architecture: if ML training hits obstacles, FastAPI defaults anomaly flags to nominal; core IoT system runs independently. \\
+    \hline
+\end{tabular}
+\caption{Technical Risk Assessment and Engineering Mitigation Matrix.}
+\label{tab:risk_matrix}
+\end{table}
+
+\vspace{0.06cm}
+\section{Conclusion and Future Scope}
+\label{sec:conclusion}
+The SmartHealth IoT system delivers a robust, accessible telemetry platform bridging embedded biomedical instrumentation and asynchronous cloud software. By capturing single-lead ECG, blood oxygen saturation, pulse rate, and temperature at the edge and streaming batched JSON payloads over Wi-Fi to a Python FastAPI backend, the system demonstrates reliable data ingestion, non-blocking cloud persistence in MongoDB Atlas, and low-latency anomaly estimation via an in-memory Isolation Forest model. Telemetry and live waveforms display smoothly on a modern React web dashboard via WebSockets.
+
+\textbf{Future Engineering Roadmap:}
+\begin{enumerate}[itemsep=1pt, parsep=0pt, topsep=1pt]
+    \item \textbf{Custom PCB Fabrication:} Consolidate breadboard wiring into a compact 2-layer SMD PCB with isolated ground planes to suppress 50\,Hz noise.
+    \item \textbf{BLE Hybrid Connectivity:} Add Bluetooth Low Energy (BLE) pairing for direct smartphone telemetry during outdoor mobility.
+    \item \textbf{Edge TinyML Inference:} Port lightweight anomaly detection directly onto the ESP32 using TensorFlow Lite for Microcontrollers.
+\end{enumerate}
+
+\vspace{0.15cm}
+\begin{center}
+    \rule{0.6\linewidth}{0.6pt}\\[2pt]
+    \small\textsf{\textbf{End of System Workflow and Technical Specification Report}}\\[1pt]
+    \footnotesize\textsf{SmartHealth IoT --- 7th Semester B.Tech Major Project \textbar\ ECE Department, CGEC}
+\end{center}
+
+\end{document}

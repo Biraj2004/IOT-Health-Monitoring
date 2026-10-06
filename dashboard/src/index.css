@@ -1,0 +1,100 @@
+/* ==============================================================================
+   HEALTH MONITOR DASHBOARD — DESIGN SYSTEM & TOKENS
+   Specification: DESIGN-GUIDE.md & Impeccable (https://impeccable.style/)
+   Characteristics:
+   - Quiet neutrals, crisp white cards, thin 1px borders
+   - Restrained teal status accent (#008F72)
+   - Distinctive medical red ECG trace (#E52B2B)
+   - Strict absence of decorative gradients, emojis, or AI slop
+   - Accessible at a glance, tabular numeric data
+   ============================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surface & Canvas Tokens */
+  --color-page: #f3f5f6;
+  --color-surface: #ffffff;
+  --color-text: #172235;
+  --color-text-secondary: #586579;
+  --color-text-muted: #778294;
+  --color-border: #d8dee5;
+  --color-border-subtle: #edf1f5;
+
+  /* Medical ECG Millimeter Grid Tokens */
+  --color-grid-minor: #f0e6e6;
+  --color-grid-major: #e6d4d4;
+
+  /* Semantic Status Tokens */
+  --color-accent: #008f72;
+  --color-accent-soft: #e2f4ef;
+  --color-ecg: #e52b2b;
+  --color-warning: #a86400;
+  --color-warning-soft: #fef7ed;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef2f2;
+  --color-focus: #245ddb;
+
+  /* Geometry & Radius Tokens */
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --radius-pill: 9999px;
+
+  /* Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Layout Boundaries */
+  --content-max: 1320px;
+  --page-gutter: 32px;
+
+  /* Typography Stack */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
+}
+
+/* Modern CSS Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessibility & Tabular Numerals */
+.vital-number,
+.update-timestamp,
+.ecg-calibration,
+.vital-unit-hint {
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
