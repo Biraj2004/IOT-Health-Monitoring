@@ -1,0 +1,52 @@
+# Triggers on main and dev whenever any contributor commits or pushes.
+# Creates an empty trigger commit to signal Vercel's build pipeline and ensure
+# automatic deployment across all contributor pull requests and direct branch pushes.
+name: Vercel Auto Commit Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  make-vercel-trigger-commit:
+    name: Trigger Vercel Deployment via Auto-Commit
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.actor, '[bot]') && !contains(github.event.head_commit.message, 'trigger vercel deployment') }}
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          NAME="${{ secrets.COMMIT_USER_NAME }}"
+          EMAIL="${{ secrets.COMMIT_USER_EMAIL }}"
+
+          if [ -z "$NAME" ]; then
+            NAME="${{ github.actor }}"
+          fi
+
+          if [ -z "$EMAIL" ]; then
+            EMAIL="${{ github.actor }}@users.noreply.github.com"
+          fi
+
+          git config user.name "$NAME"
+          git config user.email "$EMAIL"
+
+      - name: Create empty commit for Vercel trigger
+        run: |
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git commit --allow-empty -m "chore(${{ github.ref_name }}): trigger vercel deployment"
+
+      - name: Push commit back
+        run: |
+          git push origin HEAD:${{ github.ref_name }}

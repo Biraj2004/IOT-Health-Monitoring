@@ -58,3 +58,5 @@ npm run preview
 
 - Please see [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines.
 - Open-source software licensed under the [MIT License](../LICENSE).
+- Project contributors and engineering team details are documented in the [Root README](../README.md#11-project-team--contributors).
+

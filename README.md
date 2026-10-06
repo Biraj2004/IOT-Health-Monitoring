@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/badge/Python-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB Atlas" />
   <img src="https://img.shields.io/badge/Hardware-ESP32_DevKit-E7352C?style=flat-square&logo=espressif&logoColor=white" alt="ESP32 DevKit" />
+  <a href="#11-project-team--contributors"><img src="https://img.shields.io/badge/Contributors-5_Engineers-teal?style=flat-square" alt="Contributors" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
   <a href="./CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square" alt="PRs Welcome" /></a>
 </p>
@@ -34,13 +35,14 @@ The system captures vital biometric signals from a patient via non-invasive sens
   - Soumyajit Pandit (Roll: `34900323052`) — Lead & Embedded Firmware
   - Debanjan Chakraborty (Roll: `34900323015`) — Backend & ML Systems
   - Bikkram Das (Roll: `34900323012`) — Hardware Systems & Prototyping
-  - Biraj Sarkar (Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
-  - Sayan Sarkar (Roll: `34900323048`) — ML Engineering & Data Analytics
+  - Biraj Sarkar ([@Biraj2004](https://github.com/Biraj2004), Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
+  - Sayan Sarkar ([@Sayan8945](https://github.com/Sayan8945), Roll: `34900323048`) — ML Engineering & Data Analytics
 - **Faculty Supervisor:**
   - Prof. Rajib Das, Assistant Professor, Dept. of ECE
 - **Laboratory Assistance:**
   - Mr. Abhijit Sarma, Laboratory Assistant, Dept. of ECE
 - **Institution:** Cooch Behar Government Engineering College (CGEC), Affiliated to MAKAUT, West Bengal
+- **Detailed Profiles & Matrix:** See [Section 11: Project Team & Contributors](#11-project-team--contributors) below for comprehensive technical deliverables and module ownership breakdown.
 
 ### Core Monitored Vitals
 
@@ -245,7 +247,8 @@ The web dashboard is fully configured for continuous deployment on **Vercel**:
   - `X-Content-Type-Options: nosniff`
   - `X-Frame-Options: DENY`
   - `Referrer-Policy: strict-origin-when-cross-origin`
-- **Icon-Centric Branding Suite**: High-resolution brand heart icons across `favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png` (180×180), `android-chrome-512x512.png`, and a clean 1200×630 `og-image.png`.
+- **Automated Contributor Deployment Trigger**: Configured via GitHub Actions ([`.github/workflows/auto-commit-dispatch.yml`](.github/workflows/auto-commit-dispatch.yml)). Whenever any contributor pushes code to `main` or `dev`, an automated empty commit is created to signal Vercel's build pipeline and trigger immediate production deployment.
+- **CI Validation Pipeline**: Automated pull request and push verification ([`.github/workflows/verify.yml`](.github/workflows/verify.yml)) enforcing static code analysis (`oxlint`) and clean production compilation (`vite build`).
 
 ---
 
@@ -253,6 +256,10 @@ The web dashboard is fully configured for continuous deployment on **Vercel**:
 
 ```text
 Health-Monitoring_Final-Year/
+├── .github/
+│   └── workflows/
+│       ├── auto-commit-dispatch.yml # Vercel auto-commit deploy trigger on contributor push
+│       └── verify.yml               # Oxlint & Vite production build verification CI
 ├── .gitignore
 ├── AGENTS.md                       # Master AI developer instructions & architecture
 ├── CONTRIBUTING.md                 # Contribution guidelines & PR process
@@ -275,7 +282,7 @@ Health-Monitoring_Final-Year/
 │       ├── App.jsx                 # Dashboard container & layout
 │       ├── App.css                 # Component styling & responsive rules
 │       ├── index.css               # Clinical design tokens (impeccable.style)
-│       ├── components/             # ECGMonitor, DashboardHeader, ErrorPage, etc.
+│       ├── components/             # ECGMonitor, DashboardHeader, MLAnalysisCard, EventLog, etc.
 │       └── hooks/useTelemetry.js   # Dual-mode WebSocket & offline simulation
 ├── guide/                          # Comprehensive Engineering Specifications
 │   ├── DESIGN-GUIDE.md             # Clinical UI/UX design standard
@@ -298,7 +305,64 @@ Health-Monitoring_Final-Year/
 
 ---
 
-## 11. Contributing & License
+## 11. Project Team & Contributors
 
-- **Contributing**: We welcome bug reports, hardware integrations, and code improvements. Please review our [Contributing Guidelines](CONTRIBUTING.md) before opening a pull request.
+The **VITAL / MONITOR (SmartHealth IoT)** system was conceived, engineered, and delivered as an undergraduate capstone research prototype by a multidisciplinary student team in the **Department of Electronics and Communication Engineering (ECE)** at **Cooch Behar Government Engineering College (CGEC)**, affiliated to **Maulana Abul Kalam Azad University of Technology (MAKAUT), West Bengal**.
+
+### 11.1. Core Engineering Team
+
+| Contributor | University Roll | Core Role | Subsystem Ownership & Key Deliverables | GitHub Profile |
+|:---|:---|:---|:---|:---|
+| **Soumyajit Pandit** | `34900323052` | **Lead & Embedded Firmware** | • ESP32 dual-core FreeRTOS firmware architecture and tasks<br>• High-resolution ADC timer sampling (AD8232 Lead I at 200 Hz)<br>• MAX30102 I²C FIFO optical buffer parsing and DS18B20 1-Wire driver<br>• Wi-Fi batch payload packaging and circular RAM ring buffer failsafe | — |
+| **Debanjan Chakraborty** | `34900323015` | **Backend & ML Systems** | • Python FastAPI asynchronous ingestion microservice (`/api/v1/telemetry/push`)<br>• Real-time bi-directional WebSocket streaming broadcast (`/ws/live`)<br>• Pydantic v2 telemetry validation schemas and auth headers<br>• MongoDB Atlas time-series persistence with compound and 30-day TTL indexes | — |
+| **Bikkram Das** | `34900323012` | **Hardware Systems & Prototyping** | • Circuit schematic design, wiring layout, and physical breadboard prototyping<br>• Biomedical signal conditioning and Lead I electrode placement configuration<br>• Passive pull-up/pull-down resistor networks and 3.3V/5V rail isolation<br>• Active piezo buzzer NPN transistor driver and emergency SOS input circuit | — |
+| **Biraj Sarkar** | `34900323013` | **Frontend UI/UX & Real-Time Web** | • React 19 clinical web dashboard adhering to `impeccable.style` design tokens<br>• Zero-CLS 60 FPS HTML5 Canvas ECG oscilloscope (25 mm/s · 10 mm/mV grid)<br>• Dual-mode telemetry abstraction (live WebSocket + realistic offline simulation)<br>• Vercel Edge continuous deployment pipeline and comprehensive SEO/GEO suite | [@Biraj2004](https://github.com/Biraj2004) |
+| **Sayan Sarkar** | `34900323048` | **ML Engineering & Data Analytics** | • In-memory `scikit-learn` Isolation Forest anomaly scoring model<br>• 4-dimensional physiological feature extraction `[HR, SpO₂, Temp, RR variance]`<br>• Real-time medical telemetry event logging module (`EventLog.jsx`)<br>• Live ML risk scoring and anomaly indicator dashboard card (`MLAnalysisCard.jsx`) | [@Sayan8945](https://github.com/Sayan8945) |
+
+### 11.2. Subsystem Responsibility Matrix
+
+| Subsystem / Layer | Primary Owner | Secondary / Co-Engineer | Core Technologies & Protocols |
+|:---|:---|:---|:---|
+| **Embedded Firmware & Acquisition** | Soumyajit Pandit | Bikkram Das | ESP32, C/C++, FreeRTOS, ESP-IDF / Arduino, I²C, 1-Wire |
+| **Hardware Prototyping & Circuits** | Bikkram Das | Soumyajit Pandit | AD8232, MAX30102, DS18B20, Breadboard / PCB, NPN Transistor |
+| **Cloud Backend & Stream Pipeline** | Debanjan Chakraborty | Sayan Sarkar | Python 3.11+, FastAPI, Uvicorn, WebSockets, MongoDB Atlas |
+| **Machine Learning & Risk Scoring** | Sayan Sarkar | Debanjan Chakraborty | Scikit-learn, Isolation Forest, NumPy, Feature Engineering |
+| **Clinical UI/UX & Web Dashboard** | Biraj Sarkar | Sayan Sarkar | React 19, Vite 8, HTML5 Canvas, Vanilla CSS3, Vercel |
+| **Academic Thesis & Master LaTeX** | Biraj Sarkar | Team | XeLaTeX, MiKTeX, TikZ Diagrams, Technical Specifications |
+
+### 11.3. Academic Mentorship & Institutional Guidance
+
+| Role | Mentor / Guide | Academic Designation & Department | Institution |
+|:---|:---|:---|:---|
+| **Faculty Supervisor** | **Prof. Rajib Das** | Assistant Professor, Department of Electronics & Communication Engineering | Cooch Behar Government Engineering College |
+| **Laboratory Technical Guidance** | **Mr. Abhijit Sarma** | Laboratory Assistant, Department of Electronics & Communication Engineering | Cooch Behar Government Engineering College |
+
+### 11.4. Repository Contributors & Git Activity
+
+We extend our sincere thanks to all project contributors who have committed code, hardware designs, and documentation to this repository.
+
+<p align="left">
+  <a href="https://github.com/Biraj2004/IOT-Health-Monitoring/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=Biraj2004/IOT-Health-Monitoring" alt="Contributors list" />
+  </a>
+</p>
+
+- **GitHub Repository**: [Biraj2004/IOT-Health-Monitoring](https://github.com/Biraj2004/IOT-Health-Monitoring)
+- **All Project Contributors**: [View Contributor Graph & Commits](https://github.com/Biraj2004/IOT-Health-Monitoring/graphs/contributors)
+
+---
+
+## 12. Contributing Guidelines
+
+We welcome community suggestions, issue reports, hardware testing logs, and code contributions.
+
+- **Issue Tracker**: Report bugs, signal conditioning issues, or feature ideas via GitHub Issues.
+- **Pull Requests**: Review our [Contributing Guidelines](CONTRIBUTING.md) for branch naming (`feat/`, `fix/`, `docs/`), commit conventions, and linting procedures before submitting PRs.
+- **Code Standard**: Verify `npm run lint` and `npm run build` pass in `dashboard/` with zero warnings before opening a pull request.
+
+---
+
+## 13. License & Acknowledgements
+
 - **License**: This project is open-source software licensed under the [MIT License](LICENSE).
+- **Acknowledgements**: Special thanks to the Department of Electronics and Communication Engineering at Cooch Behar Government Engineering College for providing laboratory facilities, instrumentation testbenches, and hardware components.
