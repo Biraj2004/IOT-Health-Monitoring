@@ -83,13 +83,14 @@ export function ECGMonitor({
     const handleResize = () => {
       const rect = container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      const width = Math.floor(rect.width);
-      const height = 260; // Fixed canonical height matching reference
+      const width = Math.max(0, Math.floor(rect.width));
+      // Height comes from CSS (.ecg-canvas breakpoints); fallback to 220px
+      const cssHeight = Math.floor(canvas.getBoundingClientRect().height);
+      const height = cssHeight > 0 ? cssHeight : 220;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.style.width = '100%';
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
@@ -120,10 +121,10 @@ export function ECGMonitor({
       lastTime = currentTime;
 
       // Layout geometry for axes and grid
-      const gutterLeft = 44;
-      const gutterRight = 14;
-      const gutterTop = 16;
-      const gutterBottom = 26;
+      const gutterLeft = 40;
+      const gutterRight = 12;
+      const gutterTop = 14;
+      const gutterBottom = 22;
       const gridWidth = Math.max(10, width - gutterLeft - gutterRight);
       const gridHeight = Math.max(10, height - gutterTop - gutterBottom);
 
@@ -251,7 +252,7 @@ export function ECGMonitor({
       ctx.strokeRect(gutterLeft, gutterTop, gridWidth, gridHeight);
 
       // 5. Draw Y-axis Scale Labels & Ticks
-      ctx.font = '500 11px Inter, sans-serif';
+      ctx.font = '500 10px Inter, sans-serif';
       ctx.fillStyle = '#778294';
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
@@ -267,10 +268,10 @@ export function ECGMonitor({
       yTicks.forEach(({ label, mv }) => {
         const yPos = baselineY - mv * mvScale;
         if (yPos >= gutterTop && yPos <= gutterTop + gridHeight) {
-          ctx.fillText(label, gutterLeft - 7, yPos);
+          ctx.fillText(label, gutterLeft - 6, yPos);
           // Tick line
           ctx.beginPath();
-          ctx.moveTo(gutterLeft - 4, yPos);
+          ctx.moveTo(gutterLeft - 3, yPos);
           ctx.lineTo(gutterLeft, yPos);
           ctx.strokeStyle = '#D8DEE5';
           ctx.lineWidth = 1;
@@ -280,7 +281,7 @@ export function ECGMonitor({
 
       // Axis unit 'mV' label
       ctx.textAlign = 'right';
-      ctx.fillText('mV', gutterLeft - 18, baselineY);
+      ctx.fillText('mV', gutterLeft - 16, baselineY);
 
       // 6. Draw X-axis Time Scale Labels (0s to 8s)
       ctx.textAlign = 'center';
@@ -296,12 +297,12 @@ export function ECGMonitor({
 
       xTicks.forEach(({ label, ratio }) => {
         const xPos = gutterLeft + ratio * gridWidth;
-        ctx.fillText(label, xPos, gutterTop + gridHeight + 7);
+        ctx.fillText(label, xPos, gutterTop + gridHeight + 6);
 
         // Tick line
         ctx.beginPath();
         ctx.moveTo(xPos, gutterTop + gridHeight);
-        ctx.lineTo(xPos, gutterTop + gridHeight + 4);
+        ctx.lineTo(xPos, gutterTop + gridHeight + 3);
         ctx.strokeStyle = '#D8DEE5';
         ctx.lineWidth = 1;
         ctx.stroke();

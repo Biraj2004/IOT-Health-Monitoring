@@ -22,7 +22,7 @@ export function useTelemetry() {
   // Vitals measurements
   const [vitals, setVitals] = useState({
     heartRate: 72,
-    spo2: 98,
+    spo2: 99,
     temperature: 36.8
   });
 
@@ -155,15 +155,15 @@ export function useTelemetry() {
       // Otherwise, simulate natural biological respiratory/perfusion wander around baseline
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
         setVitals((prev) => {
-          const hrDelta = (Math.random() - 0.5) * 1.2;
-          const newHr = Math.round(Math.min(76, Math.max(68, prev.heartRate + hrDelta)));
+          const hrDelta = (Math.random() - 0.5) * 1.0;
+          const newHr = Math.round(Math.min(76, Math.max(69, prev.heartRate + hrDelta)));
 
-          // SpO2 stays steady at 98% with occasional 97-99%
-          const spo2Delta = Math.random() > 0.8 ? (Math.random() > 0.5 ? 1 : -1) : 0;
-          const newSpo2 = Math.min(99, Math.max(97, prev.spo2 + spo2Delta));
+          // SpO2 stays steady at 99% with occasional 98-99%
+          const spo2Delta = Math.random() > 0.85 ? (Math.random() > 0.5 ? 0 : -1) : 0;
+          const newSpo2 = Math.min(99, Math.max(98, prev.spo2 + spo2Delta));
 
           // Temp subtle ±0.1°C variance around 36.8°C
-          const tempDelta = (Math.random() - 0.49) * 0.05;
+          const tempDelta = (Math.random() - 0.49) * 0.04;
           const newTemp = Number(Math.min(37.0, Math.max(36.6, prev.temperature + tempDelta)).toFixed(1));
 
           return {

@@ -7,17 +7,24 @@
 .app-viewport {
   min-height: 100vh;
   background-color: var(--color-page);
-  padding: var(--page-gutter) 0 48px;
+  padding: clamp(10px, 2vh, 18px) 0 clamp(16px, 3vh, 28px);
   display: flex;
   justify-content: center;
 }
 
 .dashboard-container {
   width: min(100% - (2 * var(--page-gutter)), var(--content-max));
+  min-width: 0;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: clamp(12px, 2vh, 18px);
+}
+
+.dashboard-container > *,
+.vitals-grid > *,
+.monitor-grid > * {
+  min-width: 0;
 }
 
 /* ------------------------------------------------------------------------------
@@ -27,10 +34,17 @@
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 16px 24px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+}
+
+.header-primary-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .header-brand {
@@ -43,34 +57,35 @@
 .brand-vital {
   font-weight: 700;
   color: var(--color-text);
-  letter-spacing: 0.06em;
-  font-size: 15px;
+  letter-spacing: 0.05em;
+  font-size: 14px;
 }
 
 .brand-slash {
   color: var(--color-text-muted);
   font-weight: 400;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .brand-monitor {
   color: var(--color-text-secondary);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .header-meta {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .connection-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 7px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--color-text);
@@ -78,8 +93,8 @@
 }
 
 .connection-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
   background-color: var(--color-accent);
@@ -99,15 +114,15 @@
 
 .header-divider {
   width: 1px;
-  height: 18px;
+  height: 15px;
   background-color: var(--color-border);
 }
 
 .update-status {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -129,16 +144,16 @@
 }
 
 .overview-title {
-  font-size: 32px;
+  font-size: clamp(22px, 2.2vw, 26px);
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: -0.02em;
   line-height: 1.2;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .overview-subtitle {
-  font-size: 15px;
+  font-size: 13.5px;
   color: var(--color-text-secondary);
   font-weight: 400;
   line-height: 1.4;
@@ -150,14 +165,14 @@
 .vitals-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: clamp(12px, 1.5vw, 18px);
 }
 
 .vital-card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 22px 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
 }
@@ -166,17 +181,17 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .vital-label {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .vital-unit-hint {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-weight: 400;
 }
@@ -184,11 +199,11 @@
 .vital-value-group {
   display: flex;
   align-items: baseline;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 .vital-number {
-  font-size: 52px;
+  font-size: clamp(38px, 3.6vw, 44px);
   font-weight: 700;
   color: var(--color-text);
   line-height: 1;
@@ -196,24 +211,24 @@
 }
 
 .vital-unit {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  margin-left: 6px;
+  margin-left: 5px;
 }
 
 .vital-card-footer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-top: 16px;
+  gap: 7px;
+  padding-top: 12px;
   border-top: 1px solid var(--color-border-subtle);
   margin-top: auto;
 }
 
 .vital-status-dot {
-  width: 7px;
-  height: 7px;
+  width: 6.5px;
+  height: 6.5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -231,7 +246,7 @@
 }
 
 .vital-status-text {
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--color-text-secondary);
   font-weight: 500;
 }
@@ -241,8 +256,8 @@
    ------------------------------------------------------------------------------ */
 .monitor-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2.7fr) minmax(280px, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 2.7fr) minmax(min(260px, 24vw), 1fr);
+  gap: clamp(12px, 1.5vw, 18px);
   align-items: stretch;
 }
 
@@ -251,7 +266,7 @@
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 22px 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
 }
@@ -259,22 +274,22 @@
 .ecg-card-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .ecg-card-title {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .live-pill {
   display: inline-block;
-  padding: 2px 7px;
-  font-size: 11px;
+  padding: 2px 6px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   background-color: var(--color-accent-soft);
   color: var(--color-accent);
   border-radius: 4px;
@@ -284,22 +299,24 @@
 .ecg-canvas-wrapper {
   width: 100%;
   position: relative;
-  margin: 4px 0 14px 0;
+  margin: 2px 0 10px 0;
   overflow: hidden;
 }
 
 .ecg-canvas {
   display: block;
   width: 100%;
-  height: 260px;
+  height: clamp(190px, 28vh, 220px);
 }
 
 .ecg-card-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 4px 12px;
   margin-top: auto;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .ecg-calibration {
@@ -339,16 +356,16 @@
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 22px 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
 }
 
 .sensor-card-title {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .sensor-list {
@@ -360,11 +377,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
+  gap: 10px;
+  padding: 11px 0;
 }
 
 .sensor-name {
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--color-text);
   font-weight: 400;
 }
@@ -372,14 +390,14 @@
 .sensor-state {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
+  gap: 7px;
+  font-size: 12.5px;
   font-weight: 500;
 }
 
 .sensor-dot {
-  width: 7px;
-  height: 7px;
+  width: 6.5px;
+  height: 6.5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -402,12 +420,12 @@
 
 .sensor-card-footer {
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid var(--color-border-subtle);
 }
 
 .sensor-source-label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-weight: 400;
 }
@@ -417,40 +435,54 @@
    ------------------------------------------------------------------------------ */
 @media (max-width: 1023px) {
   :root {
-    --page-gutter: 24px;
+    --page-gutter: 20px;
   }
 
   .vitals-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .monitor-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 }
 
 @media (max-width: 767px) {
   :root {
-    --page-gutter: 16px;
+    --page-gutter: 14px;
+  }
+
+  .dashboard-container {
+    gap: 14px;
   }
 
   .dashboard-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .dashboard-header .header-report-btn,
+  .dashboard-header .header-report-divider {
+    display: none;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-subtle);
+    gap: 6px 10px;
   }
 
   .header-divider {
     display: none;
-  }
-
-  /* Two clean lines for Device Connected and Last Update in mobile view */
-  .header-meta {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 
   .connection-badge,
@@ -460,14 +492,275 @@
   }
 
   .overview-title {
-    font-size: 26px;
+    font-size: 22px;
   }
 
   .vitals-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 
   .vital-number {
-    font-size: 42px;
+    font-size: 38px;
+  }
+
+  .vital-card,
+  .ecg-monitor-card,
+  .sensor-status-card {
+    padding: 14px 16px;
+  }
+
+  .ecg-canvas {
+    height: 190px;
   }
 }
+
+@media (max-width: 380px) {
+  :root {
+    --page-gutter: 10px;
+  }
+
+  .dashboard-header {
+    padding: 10px 12px;
+  }
+
+  .connection-badge,
+  .update-status {
+    font-size: 11px;
+  }
+
+  .connection-badge {
+    letter-spacing: 0.01em;
+  }
+
+  .overview-title {
+    font-size: 20px;
+  }
+
+  .vital-card,
+  .ecg-monitor-card,
+  .sensor-status-card {
+    padding: 12px 14px;
+  }
+
+  .vital-number {
+    font-size: 34px;
+  }
+
+  .ecg-canvas {
+    height: 170px;
+  }
+}
+
+/* ------------------------------------------------------------------------------
+   6. Action Buttons & Minimal Report Link
+   ------------------------------------------------------------------------------ */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.action-btn-primary {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  border-color: var(--color-accent);
+}
+
+.action-btn-primary:hover {
+  background-color: #007a61;
+  border-color: #007a61;
+}
+
+.action-btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.action-btn-secondary:hover {
+  background-color: #f7f9fa;
+  border-color: #b8c4d0;
+}
+
+.action-btn-quiet {
+  background-color: #f7f9fa;
+  color: var(--color-text);
+  border-color: var(--color-border);
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.action-btn-quiet:hover {
+  background-color: #edf1f5;
+  border-color: #b8c4d0;
+}
+
+.header-report-btn {
+  color: var(--color-text);
+}
+
+.btn-external-icon {
+  color: var(--color-text-muted);
+  margin-left: -2px;
+}
+
+/* ------------------------------------------------------------------------------
+   7. Single-Screen Minimal Error View (404, 500, 503) — Zero Scrolling Guarantee
+   ------------------------------------------------------------------------------ */
+.error-viewport {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  width: 100%;
+  overflow: hidden; /* strictly no vertical or horizontal scroll */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--color-page);
+  padding: 18px var(--page-gutter);
+  box-sizing: border-box;
+}
+
+.error-header {
+  width: min(100%, var(--content-max));
+  margin: 0 auto;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-hero-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px 16px;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.error-hero-content {
+  max-width: 580px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.error-giant-number {
+  font-size: clamp(80px, 15vw, 120px);
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  margin-bottom: 12px;
+}
+
+.error-hero-title {
+  font-size: clamp(20px, 3.4vw, 26px);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.error-hero-subtitle {
+  font-size: clamp(13.5px, 1.8vw, 15px);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 26px;
+  max-width: 480px;
+}
+
+.inline-path-code {
+  display: inline-block;
+  padding: 1px 7px;
+  background-color: #e4eaf1;
+  color: var(--color-danger);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  font-weight: 600;
+  line-height: 1.3;
+  vertical-align: baseline;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-hero-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.action-btn-lg {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13.5px;
+}
+
+@media (max-width: 767px) {
+  .error-viewport {
+    padding: 12px 14px;
+    overflow-x: hidden;
+  }
+
+  .error-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+  }
+
+  .error-hero-container {
+    padding: 12px 8px;
+  }
+
+  .error-hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .error-hero-actions .action-btn {
+    width: 100%;
+  }
+}
+
+
+

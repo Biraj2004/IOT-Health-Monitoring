@@ -1,11 +1,13 @@
 import React from 'react';
+import { FileTextIcon, ExternalLinkIcon } from './Icons';
 
 /**
  * DashboardHeader Component
- * Implements the persistent instrument header per DESIGN-GUIDE.md:
- * - Product label: VITAL / MONITOR
- * - Hardware connection state: DEVICE CONNECTED
- * - Last data update timestamp with clear stale indication
+ * Clinical instrument header per DESIGN-GUIDE.md:
+ * - Brand: VITAL / MONITOR
+ * - Right side: Workflow report button, hardware connection state, last update time
+ * - Report button hidden on mobile (≤767px)
+ * - Completely responsive with zero horizontal overflow
  */
 export function DashboardHeader({ connectionStatus = 'connected', lastUpdated }) {
   const isConnected = connectionStatus === 'connected';
@@ -26,6 +28,20 @@ export function DashboardHeader({ connectionStatus = 'connected', lastUpdated })
       </div>
 
       <div className="header-meta">
+        <a
+          href="/workflow-report.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="action-btn action-btn-quiet header-report-btn"
+          title="Open SmartHealth IoT Workflow Report (PDF)"
+        >
+          <FileTextIcon size={14} />
+          <span>Workflow report</span>
+          <ExternalLinkIcon size={12} className="btn-external-icon" />
+        </a>
+
+        <span className="header-divider header-report-divider" aria-hidden="true" />
+
         <div className={`connection-badge connection-${connectionStatus}`}>
           <span className="connection-dot" aria-hidden="true" />
           <span className="connection-label">{connectionLabel}</span>

@@ -1,23 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardHeader } from './components/DashboardHeader';
 import { VitalsGrid } from './components/VitalsGrid';
 import { ECGMonitor } from './components/ECGMonitor';
 import { SensorStatus } from './components/SensorStatus';
+import { ErrorPage } from './components/ErrorPage';
 import { useTelemetry } from './hooks/useTelemetry';
 import './App.css';
 
 /**
  * App Component
- * SmartHealth IoT Health Monitoring Dashboard
+ * SmartHealth IoT Health Monitoring Dashboard & Routing System
  * 
  * Adheres strictly to DESIGN-GUIDE.md and Impeccable (https://impeccable.style/):
+ * - Pure minimalism: zero clutter, zero emojis, quiet neutrals, tabular typography
  * - Clean abstractions (useTelemetry handles hardware transports and streaming)
- * - Minimal, quiet palette (cool grey background, crisp white cards, restrained teal status, red ECG trace)
- * - Zero AI slop, zero emojis, zero gratuitous shadows/gradients
- * - Tabular numbers for medical readings
- * - Responsive by composition across mobile, tablet, and desktop
+ * - Single-screen error pages (404, 500, 503) matching dashboard design language
+ * - Direct mapping to workflow report PDF across dashboard header and error pages
  */
 export function App() {
+  const [currentPath, setCurrentPath] = useState(() => window.location.pathname);
+
+  // Synchronize route on browser back/forward and pushState
+  useEffect(() => {
+    const onLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', onLocationChange);
+    return () => window.removeEventListener('popstate', onLocationChange);
+  }, []);
+
+  const navigate = (path) => {
+    window.history.pushState(null, '', path);
+    setCurrentPath(path);
+  };
+
   const {
     connectionStatus,
     lastUpdated,
@@ -25,10 +42,30 @@ export function App() {
     sensorStatus
   } = useTelemetry();
 
+  // Normalize path
+  const normalizedPath = currentPath.toLowerCase().replace(/\/$/, '') || '/';
+
+  // Route to clinical error pages
+  if (normalizedPath === '/404') {
+    return <ErrorPage initialErrorCode="404" onNavigateHome={() => navigate('/')} />;
+  }
+  if (normalizedPath === '/500') {
+    return <ErrorPage initialErrorCode="500" onNavigateHome={() => navigate('/')} />;
+  }
+  if (normalizedPath === '/503') {
+    return <ErrorPage initialErrorCode="503" onNavigateHome={() => navigate('/')} />;
+  }
+
+  // Any unrecognized route defaults to 404
+  if (normalizedPath !== '/' && normalizedPath !== '/index.html') {
+    return <ErrorPage initialErrorCode="404" onNavigateHome={() => navigate('/')} />;
+  }
+
+  // Primary Clinical Dashboard
   return (
     <div className="app-viewport">
       <div className="dashboard-container">
-        {/* 1. Persistent Top Header */}
+        {/* 1. Persistent Top Header with Workflow Report PDF Button */}
         <DashboardHeader
           connectionStatus={connectionStatus}
           lastUpdated={lastUpdated}
