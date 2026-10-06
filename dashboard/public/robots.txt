@@ -1,0 +1,28 @@
+# ==============================================================================
+# Robots.txt — VITAL / MONITOR Health Dashboard
+# Follows seo-optimization-basic-guide.md
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Disallow: /api/
+
+# AI Search Crawlers & GEO (Section 6 of SEO Guide)
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Sitemap Location
+Sitemap: https://vitalmonitor.vercel.app/sitemap.xml

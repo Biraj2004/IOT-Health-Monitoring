@@ -2,13 +2,85 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b91c1c'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SmartHealth IoT — Clinical Telemetry Dashboard</title>
-    <!-- Editorial Typography: Inter (UI), Newsreader (Editorial Headings), JetBrains Mono (Telemetry/Logs) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+    <title>VITAL / MONITOR — Real-Time IoT Health Telemetry</title>
+
+    <!-- Meta Description (150–160 chars) per SEO Guide Section 2 -->
+    <meta name="description" content="Real-time clinical health monitoring dashboard tracking SpO2, body temperature, heart rate, and live Lead I ECG waveform streaming from IoT sensors." />
+    <meta name="author" content="SmartHealth IoT Team" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Canonical URL per SEO Guide Section 1 -->
+    <link rel="canonical" href="https://vitalmonitor.vercel.app/" />
+
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Theme Color & Mobile App Readiness -->
+    <meta name="theme-color" content="#f3f5f6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VITAL" />
+
+    <!-- Open Graph (Facebook / LinkedIn) per SEO Guide Section 2 -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://vitalmonitor.vercel.app/" />
+    <meta property="og:title" content="VITAL / MONITOR — Real-Time IoT Health Telemetry" />
+    <meta property="og:description" content="Live monitoring of SpO2, body temperature, heart rate, and continuous Lead I ECG waveform streaming from connected hardware sensors." />
+    <meta property="og:image" content="https://vitalmonitor.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="VITAL / MONITOR Patient Telemetry Dashboard Preview" />
+    <meta property="og:site_name" content="VITAL Health Telemetry" />
+
+    <!-- Twitter Cards per SEO Guide Section 2 -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VITAL / MONITOR — Real-Time IoT Health Telemetry" />
+    <meta name="twitter:description" content="Live monitoring of SpO2, body temperature, heart rate, and continuous Lead I ECG waveform streaming from connected hardware sensors." />
+    <meta name="twitter:image" content="https://vitalmonitor.vercel.app/og-image.png" />
+
+    <!-- Performance & Font Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Structured Data (JSON-LD) for Search & AI Engines (GEO) per SEO Guide Section 6 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://vitalmonitor.vercel.app/#app",
+          "name": "VITAL / MONITOR",
+          "url": "https://vitalmonitor.vercel.app/",
+          "description": "Real-time clinical health monitoring dashboard tracking SpO2, body temperature, heart rate, and live Lead I ECG waveform streaming from IoT sensors.",
+          "applicationCategory": "HealthApplication",
+          "operatingSystem": "All modern browsers",
+          "screenshot": "https://vitalmonitor.vercel.app/og-image.png",
+          "featureList": [
+            "Live MAX30102 PPG SpO2 and Heart Rate tracking",
+            "DS18B20 1-Wire high-precision body temperature telemetry",
+            "AD8232 continuous Lead I ECG waveform plotter (100 Hz)",
+            "Automated hardware connection state supervision"
+          ]
+        },
+        {
+          "@type": "MedicalWebPage",
+          "@id": "https://vitalmonitor.vercel.app/#webpage",
+          "url": "https://vitalmonitor.vercel.app/",
+          "name": "Patient Overview Telemetry Dashboard",
+          "about": [
+            { "@type": "MedicalCondition", "name": "Cardiac and Vital Sign Telemetry" }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
