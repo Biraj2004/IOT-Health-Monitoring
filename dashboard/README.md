@@ -1,16 +1,26 @@
-# React + Vite
+# VITAL / MONITOR — Web Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+<p align="left">
+  <a href="https://vitalmonitor.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-vitalmonitor.vercel.app-008F72?style=flat-square&logo=vercel" alt="Live Demo" /></a>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Linter-Oxlint-blue?style=flat-square" alt="Oxlint" />
+</p>
 
-Currently, two official plugins are available:
+React 19 & Vite frontend dashboard for the IoT-based SmartHealth monitoring system.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Readings Before Decoration**: Pure sans-serif typography, high contrast, zero emojis, zero artificial blur or glassmorphism.
+- **Continuous ECG Canvas**: High-DPI Lead I ECG sweep plotter running at 60 FPS on a calibrated millimeter grid.
+- **Hardware Telemetry Abstraction**: Real-time WebSocket connection to backend with resilient offline fallback.
+- **PWA & SEO Ready**: Complete metadata, Apple Touch Icons, Web Manifest, and JSON-LD schema for search and AI engine optimization.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scripts
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```bash
+npm run dev      # Start Vite local development server
+npm run build    # Build optimized production bundle to dist/
+npm run lint     # Run oxlint fast static code analysis
+npm run preview  # Locally preview production dist build
+```
