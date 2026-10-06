@@ -29,6 +29,18 @@
 
 The system captures vital biometric signals from a patient via non-invasive sensors, digitizes and packages telemetry on an **ESP32 DevKit**, securely streams data over Wi-Fi to a **Python FastAPI** backend for validation, persistence (**MongoDB**), and real-time **WebSocket** broadcast, and renders live medical-grade visualizations on a high-performance **React 19** clinical dashboard.
 
+### Academic & Student Governance
+- **Student Team:**
+  - Soumyajit Pandit (Roll: `34900323052`) — Lead & Embedded Firmware
+  - Debanjan Chakraborty (Roll: `34900323015`) — Backend & ML Systems
+  - Bikkram Das (Roll: `34900323012`) — Hardware Systems & Prototyping
+  - Biraj Sarkar (Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
+  - Sayan Sarkar (Roll: `34900323048`) — ML Engineering & Data Analytics
+- **Faculty Supervisors:**
+  - Prof. Rajib Das, Assistant Professor, Dept. of ECE
+  - Mr. Abhijit Sarma, Assistant Professor, Dept. of ECE
+- **Institution:** Cooch Behar Government Engineering College (CGEC), Affiliated to MAKAUT, West Bengal
+
 ### Core Monitored Vitals
 
 | Biometric Parameter | Sensor Module | Interface / Pinout | Clinical Unit | Nominal Range |
@@ -98,19 +110,22 @@ The hardware acquisition layer is powered by an **ESP32 DevKit** running embedde
 
 | Sensor / Module | Sensor Pin | ESP32 GPIO Pin | Description / Notes |
 |:---|:---|:---|:---|
-| **MAX30102** | VCC | 3.3V | Regulated 3.3V power |
+| **MAX30102 (PPG)** | VCC | 3.3V | Regulated 3.3V power |
 | | GND | GND | Common ground |
-| | SDA | GPIO 21 | I²C Data line |
-| | SCL | GPIO 22 | I²C Clock line |
-| **DS18B20** | VCC | 3.3V / 5V | Power supply |
+| | SDA | GPIO 21 | I²C Data line (4.7kΩ pull-up) |
+| | SCL | GPIO 22 | I²C Clock line (4.7kΩ pull-up) |
+| | INT | GPIO 19 | Digital Active-Low Interrupt |
+| **DS18B20 (Temp)** | VCC | 3.3V / 5V | Power supply |
 | | GND | GND | Common ground |
-| | DATA | GPIO 4 | 1-Wire bus with **4.7kΩ external pull-up** to 3.3V |
-| **AD8232** | 3.3V | 3.3V | Clean analog supply |
+| | DQ (Data) | GPIO 4 | 1-Wire bus with **4.7kΩ external pull-up** to 3.3V |
+| **AD8232 (ECG)** | 3.3V | 3.3V | Clean analog supply |
 | | GND | GND | Common ground |
 | | OUTPUT | GPIO 34 | ADC1 Channel 6 (analog ECG biopotential) |
-| | LO+ | GPIO 32 | Digital Lead-Off positive detect |
-| | LO- | GPIO 33 | Digital Lead-Off negative detect |
-| **Status Alert** | Buzzer | GPIO 23 | Active buzzer for critical local threshold alarms |
+| | LO+ | GPIO 32 | Digital Lead-Off positive detect (internal pull-down) |
+| | LO- | GPIO 33 | Digital Lead-Off negative detect (internal pull-down) |
+| **OLED 0.96"** | SDA / SCL | GPIO 21 / 22 | Shared I²C bus (address `0x3C`) |
+| **Status Buzzer** | Positive | GPIO 25 | Active buzzer alarm via NPN driver |
+| **SOS Pushbutton** | Signal | GPIO 26 | Manual emergency trigger (internal pull-up) |
 
 ---
 
@@ -162,10 +177,12 @@ The repository includes comprehensive architectural, design, academic, and optim
 
 | Guide / Document | Location | Purpose |
 |:---|:---|:---|
+| **AI Agent Governance** | [`AGENTS.md`](./AGENTS.md) | Master AI developer instructions, non-negotiables, hardware pinout, FastAPI schemas, and rules. |
 | **IoT Context & Architecture** | [`guide/iot_health_monitoring_ai_agent_project_context.md`](./guide/iot_health_monitoring_ai_agent_project_context.md) | Full technical specification, circuit schematics, ML pipeline, and viva preparation context. |
 | **Clinical Design Guide** | [`guide/DESIGN-GUIDE.md`](./guide/DESIGN-GUIDE.md) | Clinical UI tokens, grid standards (25 mm/s · 10 mm/mV), color palettes, and typographic rules. |
+| **LaTeX Master Specs** | [`guide/biraj-xelatex-general-specs.md`](./guide/biraj-xelatex-general-specs.md) | XeLaTeX B&W monochrome specifications, dynamic heading hierarchy, tables, and TikZ standards. |
 | **SEO & GEO Master Guide** | [`guide/seo-optimization-basic-guide.md`](./guide/seo-optimization-basic-guide.md) | Universal search engine optimization (SEO), Generative Engine Optimization (GEO), and icon-centric branding. |
-| **Academic LaTeX Report** | [`report/7th SEM/Workflow_Report.pdf`](./report/7th%20SEM/Workflow_Report.pdf) | Formal 7th Semester academic engineering workflow report and LaTeX source. |
+| **Academic LaTeX Report** | [`report/7th SEM/Workflow_Report.pdf`](./report/7th%20SEM/Workflow_Report.pdf) | Formal 15-page 7th Semester academic engineering workflow report and LaTeX source. |
 
 ---
 
@@ -236,6 +253,7 @@ The web dashboard is fully configured for continuous deployment on **Vercel**:
 ```text
 Health-Monitoring_Final-Year/
 ├── .gitignore
+├── AGENTS.md                       # Master AI developer instructions & architecture
 ├── CONTRIBUTING.md                 # Contribution guidelines & PR process
 ├── LICENSE                         # MIT License
 ├── README.md                       # Project master documentation
@@ -246,6 +264,8 @@ Health-Monitoring_Final-Year/
 │   ├── vercel.json                 # Dashboard-level Vercel routing
 │   ├── public/                     # Static brand assets, PWA icons, sitemap
 │   │   ├── favicon.svg             # Scalable medical heart mark
+│   │   ├── workflow-report.pdf     # Direct downloadable PDF report
+│   │   ├── 404.html                # Single-screen clinical error page
 │   │   ├── og-image.png            # 1200×630 icon-centric social preview
 │   │   ├── robots.txt              # Bot & AI crawler indexing rules
 │   │   ├── sitemap.xml             # XML sitemap
@@ -254,16 +274,18 @@ Health-Monitoring_Final-Year/
 │       ├── App.jsx                 # Dashboard container & layout
 │       ├── App.css                 # Component styling & responsive rules
 │       ├── index.css               # Clinical design tokens (impeccable.style)
-│       ├── components/             # ECGMonitor, VitalCard, VitalsGrid, etc.
+│       ├── components/             # ECGMonitor, DashboardHeader, ErrorPage, etc.
 │       └── hooks/useTelemetry.js   # Dual-mode WebSocket & offline simulation
 ├── guide/                          # Comprehensive Engineering Specifications
 │   ├── DESIGN-GUIDE.md             # Clinical UI/UX design standard
+│   ├── biraj-xelatex-general-specs.md # XeLaTeX B&W standards, TikZ, and table rules
 │   ├── iot_health_monitoring_ai_agent_project_context.md  # End-to-end architecture & specs
 │   └── seo-optimization-basic-guide.md # Universal modern SEO & GEO guide
 └── report/                         # Academic Documentation & Thesis
     └── 7th SEM/
-        ├── SmartHealth_IoT_Workflow_Report.tex # LaTeX source
-        └── Workflow_Report.pdf     # Compiled academic report
+        ├── SmartHealth_IoT_Workflow_Report.tex # 15-page XeLaTeX source
+        ├── SmartHealth_IoT_Workflow_Report.pdf # Compiled master PDF
+        └── Workflow_Report.pdf     # Mirrored submission PDF
 ```
 
 ---
