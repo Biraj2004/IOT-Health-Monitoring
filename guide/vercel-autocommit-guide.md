@@ -136,7 +136,10 @@ jobs:
     name: Trigger Vercel Deployment via Owner Commit
     runs-on: ubuntu-latest
     # Only run for collaborators (skip when the owner pushes directly) or on manual dispatch
-    if: ${{ (github.event_name == 'workflow_dispatch' || github.actor != github.repository_owner) && !contains(github.actor, '[bot]') && !contains(github.event.head_commit.message, 'trigger vercel deployment') }}
+    if: >-
+      (github.event_name == 'workflow_dispatch' || github.actor != github.repository_owner) &&
+      !contains(github.actor, '[bot]') &&
+      !contains(github.event.head_commit.message || '', 'trigger vercel deployment')
     steps:
       - name: Checkout repository branch
         uses: actions/checkout@v4
