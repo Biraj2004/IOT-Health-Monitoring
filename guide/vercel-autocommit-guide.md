@@ -128,6 +128,10 @@ on:
       - dev
   workflow_dispatch: # Allows manual trigger from GitHub Actions UI
 
+concurrency:
+  group: vercel-autocommit-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -175,7 +179,11 @@ jobs:
 
       - name: Push trigger commit to GitHub
         run: |
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:${{ github.ref_name }} || {
+            echo "Push race detected, rebasing and retrying..."
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }}
+          }
 ```
 
 ---

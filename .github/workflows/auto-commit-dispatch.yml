@@ -10,6 +10,10 @@ on:
       - dev
   workflow_dispatch:
 
+concurrency:
+  group: vercel-autocommit-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -35,7 +39,7 @@ jobs:
           EMAIL="${{ secrets.COMMIT_USER_EMAIL }}"
 
           if [ -z "$NAME" ]; then
-            NAME="Biraj2004"
+            NAME="${{ github.repository_owner }}"
           fi
 
           if [ -z "$EMAIL" ]; then
@@ -52,4 +56,8 @@ jobs:
 
       - name: Push commit back
         run: |
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:${{ github.ref_name }} || {
+            echo "Push race detected, rebasing and retrying..."
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }}
+          }
