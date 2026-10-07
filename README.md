@@ -1,5 +1,5 @@
 # VITAL / MONITOR — SmartHealth IoT
-
+ 
 <p align="center">
   <img src="dashboard/public/favicon.svg" alt="VITAL Logo" width="88" height="88" style="border-radius: 18px;" />
 </p>
