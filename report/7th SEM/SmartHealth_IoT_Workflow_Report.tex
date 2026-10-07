@@ -636,49 +636,24 @@ The backend runs on \textbf{Python FastAPI} using the ASGI server Uvicorn. When 
 \label{fig:backend_pipeline}
 \end{figure}
 
-\subsection{REST API and WebSocket Interface Specifications}
-Table~\ref{tab:api_specs} defines the endpoints exposed by the FastAPI server.
+\subsection{Pydantic Data Models and Schema Validation}
+FastAPI automatically enforces data integrity through Pydantic models. Incoming payloads with out-of-range numerical values or corrupt data types are rejected at the network boundary with HTTP 422, shielding the database and ML pipeline.
 
-\vspace{0.08cm}
-\begin{table}[H]
-\centering
-\small
-\setlength{\tabcolsep}{4.5pt}
-\renewcommand{\arraystretch}{1.12}
-\setlength{\tblavail}{\dimexpr\linewidth - 8\tabcolsep - 5\arrayrulewidth\relax}
-\setlength{\wA}{0.12\tblavail}
-\setlength{\wB}{0.34\tblavail}
-\setlength{\wC}{0.20\tblavail}
-\setlength{\wD}{0.34\tblavail}
-\begin{tabular}{|B{\wA}|L{\wB}|L{\wC}|L{\wD}|}
-    \hline
-    \multicolumn{1}{|M{\wA}|}{\textbf{Verb}} &
-    \multicolumn{1}{M{\wB}|}{\textbf{Route Path}} &
-    \multicolumn{1}{M{\wC}|}{\textbf{Input Parameters}} &
-    \multicolumn{1}{M{\wD}|}{\textbf{Output Description \& Status}} \\
-    \hline
-    \texttt{POST} & \texttt{/api/readings} & JSON Body (\texttt{HealthReading}) & Returns \texttt{\{"status": "success"\}} (201 Created) \\
-    \hline
-    \texttt{GET} & \texttt{/api/readings/latest} & Query: \texttt{?device\_id=...} & Returns latest vitals, anomaly score, status (200 OK) \\
-    \hline
-    \texttt{GET} & \texttt{/api/readings/history} & Query: \texttt{?limit=100} & Paginated historical readings array (200 OK) \\
-    \hline
-    \texttt{POST} & \texttt{/api/devices/register} & JSON Body (\texttt{device\_id}) & Registers hardware node; returns key (200 OK) \\
-    \hline
-    \texttt{GET} & \texttt{/api/predictions/latest} & Query: \texttt{?device\_id=...} & Returns current ML anomaly score \& trend (200 OK) \\
-    \hline
-    \texttt{WS} & \texttt{/ws/health} & WebSocket handshake & Full-duplex JSON stream of ECG \& vitals (101 Switching) \\
-    \hline
-\end{tabular}
-\caption{REST API and WebSocket Endpoint Specifications.}
-\label{tab:api_specs}
-\end{table}
+\begin{tcolorbox}[colback=black!3, colframe=black!60, arc=2pt, boxrule=0.6pt, left=5pt, right=5pt, top=2pt, bottom=2pt]
+\footnotesize\ttfamily
+class HealthReading(BaseModel):\\
+\quad device\_id: str = Field(..., example="ESP32\_001")\\
+\quad heart\_rate: float = Field(..., ge=30.0, le=220.0)\\
+\quad spo2: float = Field(..., ge=70.0, le=100.0)\\
+\quad temperature: float = Field(..., ge=30.0, le=45.0)\\
+\quad ecg\_samples: List[int] = Field(..., min\_items=10, max\_items=200)
+\end{tcolorbox}
 \clearpage
 
 % ==============================================================================
-% PAGE 10: SECTION 5 (CONT.) — DATABASE SCHEMA & DATA MODELS
+% PAGE 10: SECTION 5 (CONT.) — DATABASE DESIGN
 % ==============================================================================
-\subsection{MongoDB Document Schema Design}
+\subsection{Database Design}
 The database layer uses \textbf{MongoDB Atlas} via the asynchronous Python driver \texttt{motor}. The document-oriented BSON format naturally accommodates variable-length ECG sample arrays alongside scalar vitals. Table~\ref{tab:mongo_schema} details the four collections.
 
 \vspace{0.08cm}
@@ -727,19 +702,6 @@ The database layer uses \textbf{MongoDB Atlas} via the asynchronous Python drive
 \caption{MongoDB Document Collections and Field Definitions.}
 \label{tab:mongo_schema}
 \end{table}
-
-\subsection{Pydantic Data Models and Schema Validation}
-FastAPI automatically enforces data integrity through Pydantic models. Incoming payloads with out-of-range numerical values or corrupt data types are rejected at the network boundary with HTTP 422, shielding the database and ML pipeline.
-
-\begin{tcolorbox}[colback=black!3, colframe=black!60, arc=2pt, boxrule=0.6pt, left=5pt, right=5pt, top=2pt, bottom=2pt]
-\footnotesize\ttfamily
-class HealthReading(BaseModel):\\
-\quad device\_id: str = Field(..., example="ESP32\_001")\\
-\quad heart\_rate: float = Field(..., ge=30.0, le=220.0)\\
-\quad spo2: float = Field(..., ge=70.0, le=100.0)\\
-\quad temperature: float = Field(..., ge=30.0, le=45.0)\\
-\quad ecg\_samples: List[int] = Field(..., min\_items=10, max\_items=200)
-\end{tcolorbox}
 \clearpage
 
 % ==============================================================================
@@ -906,7 +868,7 @@ Figure~\ref{fig:dashboard_wireframe} presents the live production user interface
 \centering
 \begin{tcolorbox}[tikzbox, title={SmartHealth IoT Real-Time Clinical Dashboard (Live Production Interface)}, width=\linewidth]
 \centering
-\includegraphics[width=\linewidth]{images/dashboard_live_telemetry.png}
+\includegraphics[width=\linewidth]{images/vitalmonitor.vercel.app_.png}
 \end{tcolorbox}
 \vspace{-0.2cm}
 \caption{Production Screenshot of the SmartHealth IoT Clinical React Telemetry Dashboard.}
