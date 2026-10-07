@@ -352,7 +352,7 @@ We extend our sincere thanks to all project contributors who have committed code
 
 ---
 
-## 12. Contributing Guidelines
+## 12. Contributing Guidelines 
 
 We welcome community suggestions, issue reports, hardware testing logs, and code contributions.
 
