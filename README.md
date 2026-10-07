@@ -185,6 +185,7 @@ The repository includes comprehensive architectural, design, academic, and optim
 | **Clinical Design Guide** | [`guide/DESIGN-GUIDE.md`](./guide/DESIGN-GUIDE.md) | Clinical UI tokens, grid standards (25 mm/s · 10 mm/mV), color palettes, and typographic rules. |
 | **LaTeX Master Specs** | [`guide/biraj-xelatex-general-specs.md`](./guide/biraj-xelatex-general-specs.md) | XeLaTeX B&W monochrome specifications, dynamic heading hierarchy, tables, and TikZ standards. |
 | **SEO & GEO Master Guide** | [`guide/seo-optimization-basic-guide.md`](./guide/seo-optimization-basic-guide.md) | Universal search engine optimization (SEO), Generative Engine Optimization (GEO), and icon-centric branding. |
+| **Vercel Auto-Commit Guide** | [`guide/vercel-autocommit-guide.md`](./guide/vercel-autocommit-guide.md) | Universal guide for bypassing Vercel Hobby plan collaborator limits via GitHub Actions auto-commit dispatch. |
 | **Academic LaTeX Report** | [`report/7th SEM/Workflow_Report.pdf`](./report/7th%20SEM/Workflow_Report.pdf) | Formal 15-page 7th Semester academic engineering workflow report and LaTeX source. |
 
 ---
@@ -288,7 +289,9 @@ Health-Monitoring_Final-Year/
 │   ├── DESIGN-GUIDE.md             # Clinical UI/UX design standard
 │   ├── biraj-xelatex-general-specs.md # XeLaTeX B&W standards, TikZ, and table rules
 │   ├── iot_health_monitoring_ai_agent_project_context.md  # End-to-end architecture & specs
-│   └── seo-optimization-basic-guide.md # Universal modern SEO & GEO guide
+│   ├── seo-optimization-basic-guide.md # Universal modern SEO & GEO guide
+│   └── vercel-autocommit-guide.md      # Vercel Hobby auto-commit CI/CD guide
+├── vercel-autocommit-guide.md          # Root copy of Vercel deployment guide
 └── report/                         # Academic Documentation & Thesis
     └── 7th SEM/
         ├── SmartHealth_IoT_Workflow_Report.tex # 15-page XeLaTeX source
