@@ -33,7 +33,7 @@ The system captures vital biometric signals from a patient via non-invasive sens
 ### Academic & Student Governance
 - **Student Team:**
   - Soumyajit Pandit (Roll: `34900323052`) — Lead & Embedded Firmware
-  - Debanjan Chakraborty (Roll: `34900323015`) — Backend & ML Systems
+  - Debanjan Chakraborty ([@imdebanjan](https://github.com/imdebanjan),Roll: `34900323015`) — Backend & ML Systems
   - Bikkram Das (Roll: `34900323012`) — Hardware Systems & Prototyping
   - Biraj Sarkar ([@Biraj2004](https://github.com/Biraj2004), Roll: `34900323013`) — Frontend UI/UX & Real-Time Web
   - Sayan Sarkar ([@Sayan8945](https://github.com/Sayan8945), Roll: `34900323048`) — ML Engineering & Data Analytics
