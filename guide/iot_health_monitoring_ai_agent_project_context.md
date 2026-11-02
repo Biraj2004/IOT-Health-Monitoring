@@ -63,32 +63,40 @@ The project should demonstrate:
 
 ---
 
-# 3. Final Hardware
+# 3. Final Hardware & Bill of Materials (BOM)
 
-## Required
+## Required Components (Updated Hardware Setup)
 
-| Component | Purpose |
-|---|---|
-| ESP32 DevKit | Main microcontroller + Wi-Fi |
-| AD8232 ECG Module | ECG signal acquisition |
-| ECG electrodes | Capture ECG electrical signal |
-| MAX30102 | SpO₂ + heart-rate measurement |
-| DS18B20 | Temperature measurement |
-| 0.96" OLED I2C | Local display |
-| Buzzer | Local alert |
-| Push button | Optional SOS/manual alert |
-| 4.7kΩ resistor | DS18B20 pull-up |
-| Breadboard | Prototyping |
-| Jumper wires | Connections |
-| USB cable | Programming/power |
-| Power bank/battery | Portable power |
+| # | Component | Quantity | Purpose & Circuit Role |
+|:---:|:---|:---:|:---|
+| 1 | **ESP32 DevKit V1 (30/38-pin)** | 1 | Central dual-core microcontroller + 2.4 GHz Wi-Fi bridge; executes 100 Hz ADC sampling, I2C/1-Wire acquisition, local OLED & buzzer alerts, and 50-sample telemetry batch dispatch. |
+| 2 | **AD8232 ECG Module with Lead Cable** | 1 | Single-lead ECG analog front-end biopotential amplifier & filter; outputs continuous 0–3.3V analog waveform to GPIO34 (ADC1_CH6). |
+| 3 | **Disposable ECG Electrode Pads** | 1 pack | Ag/AgCl conductive snap-on dermal electrode interface (RA, LA, RL Einthoven Lead-I configuration). |
+| 4 | **MAX30102 SpO₂ and PPG Module** | 1 | Integrated optical pulse oximeter & heart-rate biosensor; measures red/IR light absorption over shared I2C bus (Address: 0x57, SDA: GPIO21, SCL: GPIO22). |
+| 5 | **Waterproof DS18B20 Temperature Probe** | 1 | Precision digital body surface temperature sensor operating over Dallas 1-Wire protocol on GPIO18 with ±0.5°C accuracy. |
+| 6 | **0.96-inch I²C OLED Display (SSD1306)** | 1 | Local visual output for real-time vital metrics (HR, SpO₂, Temp) and network diagnostics; multiplexed on shared I2C bus (Address: 0x3C, SDA: GPIO21, SCL: GPIO22). |
+| 7 | **Active Piezo Buzzer** | 1 | Edge-level acoustic emergency alarm driven via active HIGH logic on GPIO25 for immediate threshold alerts (e.g., SpO₂ < 90%). |
+| 8 | **SOS Push Button** | 1 | Tactile edge-level manual emergency SOS trigger / screen toggle wired between GPIO14 and GND with internal pull-up enabled. |
+| 9 | **4.7 kΩ Resistors** | 2 | 1 mandatory pull-up resistor bridged between DS18B20 DATA line and 3.3V rail; 1 spare / optional I2C pull-up termination. |
+| 10 | **Jumper Wire Set** | 1 set | Initial signal interconnects, diagnostics, and breadboard prototyping before permanent mounting. |
+| 11 | **Normal Connecting Wire (for Soldering)** | — | Solid-core and insulated flexible hookup wire for permanent point-to-point soldering on prototype board. |
+| 12 | **Perfboard / Prototype PCB / Veroboard** | 1 (large) | Non-connecting pad-per-hole rigid carrier board hosting modular female sockets, noise-isolated ground planes, and all soldered sensor connections. |
+| 13 | **3.7V Li-ion Batteries** | 2 | 2S Series configuration providing 7.4V nominal (8.4V peak) isolated DC power; completely eliminates 50 Hz AC mains ground loop hum. |
+| 14 | **DC-DC Step-Down Buck Converter** | 1 | High-efficiency switching regulator stepping down 7.4V–8.4V battery pack down to stable 5.0V DC fed into ESP32 VIN (onboard LDO then delivers clean 3.3V to sensors). |
+
+### Power Architecture: 2S Li-ion + Buck Regulation
+* **Battery Configuration:** 2x 3.7V Li-ion cells in **Series (2S)** yielding 7.4V nominal (8.4V fully charged).
+* **Buck Converter Step-Down:** Drops $7.4\text{V} - 8.4\text{V} \rightarrow 5.0\text{V}$ DC with $>90\%$ electrical efficiency.
+* **Two-Stage Noise Rejection:** The regulated 5.0V feeds into the ESP32 `VIN` pin. The ESP32's onboard linear LDO (AMS1117/ME6211) further steps this down to an ultra-clean **3.3V** rail, using its high Power Supply Rejection Ratio (PSRR) to filter out high-frequency buck switching ripple before power reaches the sensitive AD8232 analog front-end.
 
 ## Not required
 
-- MPU6050
-- GPS
+- MPU6050 / Fall detection
+- GPS module
 - Additional fall-detection hardware
 - Separate ECG hardware beyond AD8232
+- Node.js backend
+- Separate ML server
 
 ---
 
@@ -911,11 +919,16 @@ ESP32 → Production API
 ## Hardware
 
 ```text
-ESP32
-AD8232
-MAX30102
-DS18B20
-Buzzer
+ESP32 DevKit V1 (30/38-pin)
+AD8232 ECG Module + 3-Lead Cable + Ag/AgCl Electrodes
+MAX30102 PPG & Pulse Oximeter Module
+DS18B20 Waterproof Temperature Probe + 4.7kΩ Pull-up Resistor
+0.96" I2C OLED (SSD1306 128x64)
+Active Piezo Buzzer (GPIO25)
+SOS Tactile Push Button (GPIO14)
+2x 3.7V Li-ion Batteries (2S Series: 7.4V - 8.4V)
+DC-DC Step-Down Buck Converter (Tuned to 5.0V)
+Large Non-Connecting Perfboard / Prototype PCB + Soldering Wires
 ```
 
 ## Embedded
