@@ -13,7 +13,11 @@ import React, { useRef, useEffect } from 'react';
 export function ECGMonitor({
   heartRate = 72,
   leadsConnected = true,
-  signalQuality = 'Good'
+  signalQuality = 'Good',
+  ecgSamples = [],
+  ecgBatchId = 0,
+  connectionStatus = 'connected',
+  dataSource = 'live',
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -23,15 +27,50 @@ export function ECGMonitor({
   const sweepXRef = useRef(0);
   const phaseRef = useRef(0);
   const bufferRef = useRef([]);
+  const sampleQueueRef = useRef([]);
+  const hasHardwareSamplesRef = useRef(false);
+  const lastSampleRef = useRef(0);
   const heartRateRef = useRef(heartRate);
+  const leadsConnectedRef = useRef(leadsConnected);
+  const dataSourceRef = useRef(dataSource);
+  const connectionStatusRef = useRef(connectionStatus);
 
   useEffect(() => {
-    heartRateRef.current = heartRate;
+    heartRateRef.current = typeof heartRate === 'number' ? heartRate : 72;
   }, [heartRate]);
 
-  // Synthetic physiological Lead I P-Q-R-S-T generator
+  useEffect(() => {
+    leadsConnectedRef.current = leadsConnected;
+  }, [leadsConnected]);
+
+  useEffect(() => {
+    dataSourceRef.current = dataSource;
+  }, [dataSource]);
+
+  useEffect(() => {
+    connectionStatusRef.current = connectionStatus;
+  }, [connectionStatus]);
+
+  useEffect(() => {
+    if (!Array.isArray(ecgSamples) || ecgSamples.length === 0) {
+      return;
+    }
+    hasHardwareSamplesRef.current = true;
+    const queue = sampleQueueRef.current;
+    for (let i = 0; i < ecgSamples.length; i += 1) {
+      const numeric = Number(ecgSamples[i]);
+      if (Number.isFinite(numeric)) {
+        queue.push(Math.max(-1.5, Math.min(1.5, numeric)));
+      }
+    }
+    if (queue.length > 600) {
+      queue.splice(0, queue.length - 600);
+    }
+  }, [ecgSamples, ecgBatchId]);
+
+  // Synthetic physiological Lead I P-Q-R-S-T generator (used only in demo mode)
   const computeSample = React.useCallback((phase) => {
-    if (!leadsConnected) {
+    if (!leadsConnectedRef.current) {
       return (Math.random() - 0.5) * 0.03; // Flatline analog noise
     }
 
@@ -71,7 +110,7 @@ export function ECGMonitor({
     val += (Math.random() - 0.5) * 0.012;
 
     return val;
-  }, [leadsConnected]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -139,14 +178,62 @@ export function ECGMonitor({
       // Advance sweep position (standard 8 second window)
       const sweepSpeedPx = gridWidth / 8.0; // 8 seconds per sweep width
       const step = Math.max(1, Math.round(dt * sweepSpeedPx));
+      const queue = sampleQueueRef.current;
 
-      for (let i = 0; i < step; i++) {
-        const sample = computeSample(phaseRef.current);
-        const curX = Math.floor(sweepXRef.current);
-        if (curX < gridWidth) {
-          bufferRef.current[curX] = sample;
+      if (!leadsConnectedRef.current) {
+        queue.length = 0;
+        for (let i = 0; i < step; i++) {
+          const sample = (Math.random() - 0.5) * 0.03;
+          const curX = Math.floor(sweepXRef.current);
+          if (curX < gridWidth) {
+            bufferRef.current[curX] = sample;
+          }
+          sweepXRef.current = (sweepXRef.current + 1) % gridWidth;
         }
-        sweepXRef.current = (sweepXRef.current + 1) % gridWidth;
+      } else if (queue.length > 0) {
+        const samplesPerSec = Math.max(
+          25,
+          Math.min(250, queue.length > 80 ? queue.length * 1.4 : 25)
+        );
+        const samplesPerPx = (dt * samplesPerSec) / step;
+        let cursor = 0;
+
+        for (let i = 0; i < step; i++) {
+          const idx = Math.floor(cursor);
+          const frac = cursor - idx;
+          const s0 = queue[Math.min(idx, queue.length - 1)] ?? lastSampleRef.current;
+          const s1 = queue[Math.min(idx + 1, queue.length - 1)] ?? s0;
+          const sample = s0 + (s1 - s0) * frac;
+          lastSampleRef.current = sample;
+
+          const curX = Math.floor(sweepXRef.current);
+          if (curX < gridWidth) {
+            bufferRef.current[curX] = sample;
+          }
+          sweepXRef.current = (sweepXRef.current + 1) % gridWidth;
+          cursor += samplesPerPx;
+        }
+
+        const consumed = Math.min(queue.length, Math.max(1, Math.floor(cursor)));
+        queue.splice(0, consumed);
+      } else if (dataSourceRef.current === 'demo') {
+        for (let i = 0; i < step; i++) {
+          const sample = computeSample(phaseRef.current);
+          const curX = Math.floor(sweepXRef.current);
+          if (curX < gridWidth) {
+            bufferRef.current[curX] = sample;
+          }
+          sweepXRef.current = (sweepXRef.current + 1) % gridWidth;
+        }
+      } else {
+        for (let i = 0; i < step; i++) {
+          lastSampleRef.current *= 0.85;
+          const curX = Math.floor(sweepXRef.current);
+          if (curX < gridWidth) {
+            bufferRef.current[curX] = lastSampleRef.current;
+          }
+          sweepXRef.current = (sweepXRef.current + 1) % gridWidth;
+        }
       }
 
       // 1. Clear background
@@ -319,12 +406,30 @@ export function ECGMonitor({
     };
   }, [computeSample]);
 
+  const isLive = connectionStatus === 'connected';
+  const isDemo = !isLive && dataSource === 'demo';
+  const pillLabel = isLive
+    ? 'LIVE'
+    : isDemo
+    ? 'DEMO'
+    : connectionStatus === 'reconnecting'
+    ? 'RECONNECTING'
+    : 'OFFLINE';
+  const pillClass = isLive
+    ? 'live-pill'
+    : isDemo
+    ? 'live-pill live-pill-demo'
+    : 'live-pill live-pill-offline';
+  const normalizedQualityClass = (signalQuality || 'No signal')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+
   return (
     <article className="ecg-monitor-card" aria-label="ECG Lead I Real-Time Plot">
       <div className="ecg-card-header">
         <h2 className="ecg-card-title">ECG · Lead I</h2>
-        <span className="live-pill" aria-label="Live stream active">
-          LIVE
+        <span className={pillClass} aria-label={`ECG stream status: ${pillLabel}`}>
+          {pillLabel}
         </span>
       </div>
 
@@ -336,7 +441,7 @@ export function ECGMonitor({
         <span className="ecg-calibration">25 mm/s · 10 mm/mV</span>
         <div className="ecg-signal-info">
           <span className="signal-label">Signal quality: </span>
-          <strong className={`signal-state state-${signalQuality.toLowerCase()}`}>
+          <strong className={`signal-state state-${normalizedQualityClass}`}>
             {signalQuality}
           </strong>
         </div>

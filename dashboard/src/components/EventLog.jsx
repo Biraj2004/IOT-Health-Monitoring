@@ -8,7 +8,13 @@ import React, { useState, useMemo } from 'react';
  * - Concise tabular typography
  * - Clean neutral styling for INFO items
  */
-export function EventLog({ events = [], onClear }) {
+export function EventLog({
+  events = [],
+  onClear,
+  connectionStatus = 'connected',
+  dataSource = 'live',
+  backendDatabase = 'unknown',
+}) {
   const [activeFilter, setActiveFilter] = useState('all');
 
   const filteredEvents = useMemo(() => {
@@ -158,10 +164,33 @@ export function EventLog({ events = [], onClear }) {
       {/* 4. Footer */}
       <div className="event-card-footer">
         <div className="event-stream-status">
-          <span className="stream-live-dot" aria-hidden="true" />
-          <span className="stream-status-text">Live stream</span>
+          <span
+            className={
+              connectionStatus === 'connected'
+                ? 'stream-live-dot'
+                : dataSource === 'demo'
+                ? 'stream-demo-dot'
+                : 'stream-offline-dot'
+            }
+            aria-hidden="true"
+          />
+          <span className="stream-status-text">
+            {connectionStatus === 'connected'
+              ? 'Live stream'
+              : dataSource === 'demo'
+              ? 'Demo stream'
+              : connectionStatus === 'reconnecting'
+              ? 'Reconnecting'
+              : 'Stream offline'}
+          </span>
         </div>
-        <span className="event-db-meta">Source: MongoDB alerts</span>
+        <span className="event-db-meta">
+          {backendDatabase === 'connected'
+            ? 'Source: MongoDB alerts'
+            : backendDatabase === 'in-memory'
+            ? 'Source: In-memory alerts'
+            : 'Source: Local session'}
+        </span>
       </div>
     </article>
   );

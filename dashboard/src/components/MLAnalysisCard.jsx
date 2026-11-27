@@ -10,42 +10,68 @@ import React from 'react';
  * - Non-diagnostic research index
  */
 export function MLAnalysisCard({ mlData, heartRate }) {
-  const data = mlData || {};
-  const anomalyScore = typeof data.anomalyScore === 'number' ? data.anomalyScore : 0.08;
-  const threshold = data.threshold ?? 0.65;
-  const isAnomaly = data.isAnomaly ?? (anomalyScore >= threshold);
-  const statusLabel = isAnomaly ? 'Elevated' : (anomalyScore > 0.45 ? 'Borderline' : 'Normal');
+  const data = mlData || null;
+  const hasMlData = Boolean(data && typeof data.anomalyScore === 'number');
+  const anomalyScore = hasMlData ? data.anomalyScore : null;
+  const threshold = data?.threshold ?? 0.65;
+  const isAnomaly = hasMlData ? (data.isAnomaly ?? anomalyScore >= threshold) : false;
+  const statusLabel = !hasMlData
+    ? 'Awaiting data'
+    : isAnomaly
+    ? 'Elevated'
+    : anomalyScore > 0.45
+    ? 'Borderline'
+    : 'Normal';
 
-  const hrTrend = data.trends?.heartRate || { direction: 'Stable', slope: '+0.1 bpm/min' };
-  const spo2Trend = data.trends?.spo2 || { direction: 'Steady', slope: '0.0 %/min' };
-  const tempTrend = data.trends?.temperature || { direction: 'Constant', slope: '+0.0 °C/hr' };
+  const hrTrend = data?.trends?.heartRate || { direction: '—', slope: '—' };
+  const spo2Trend = data?.trends?.spo2 || { direction: '—', slope: '—' };
+  const tempTrend = data?.trends?.temperature || { direction: '—', slope: '—' };
 
-  const currentHr = typeof heartRate === 'number' ? heartRate : 72;
-  const computedRrInterval = Math.round(60000 / Math.max(30, Math.min(220, currentHr)));
-  const rhythmClassification = currentHr > 100 
-    ? 'Sinus Tachycardia' 
-    : (currentHr < 60 ? 'Sinus Bradycardia' : 'Normal Sinus Rhythm');
+  const currentHr = typeof heartRate === 'number' && Number.isFinite(heartRate) ? heartRate : null;
+  const computedRrInterval =
+    currentHr !== null
+      ? Math.round(60000 / Math.max(30, Math.min(220, currentHr)))
+      : null;
+  const rhythmClassification =
+    currentHr === null
+      ? 'Awaiting signal'
+      : currentHr > 100
+      ? 'Sinus Tachycardia'
+      : currentHr < 60
+      ? 'Sinus Bradycardia'
+      : 'Normal Sinus Rhythm';
 
-  const ecgPattern = data.ecgPattern || {
+  const ecgPattern = data?.ecgPattern || {
     classification: rhythmClassification,
     rrInterval: computedRrInterval,
-    rrVariance: 12
+    rrVariance: null,
   };
 
-  const features = data.features || {
-    meanHr: Number(currentHr.toFixed(1)),
-    stdHr: 1.6,
-    meanSpo2: 98.8,
-    meanTemp: 36.8,
-    deltaTemp: 0.02,
-    rmsEcg: 142
-  };
+  const features = data?.features || null;
 
-  const statusClass = isAnomaly ? 'status-alert' : (anomalyScore > 0.45 ? 'status-warning' : 'status-normal');
-  const badgeClass = isAnomaly ? 'ml-badge-alert' : (anomalyScore > 0.45 ? 'ml-badge-warning' : 'ml-badge-nominal');
+  const statusClass = !hasMlData
+    ? 'status-disconnected'
+    : isAnomaly
+    ? 'status-alert'
+    : anomalyScore > 0.45
+    ? 'status-warning'
+    : 'status-normal';
+  const badgeClass = !hasMlData
+    ? 'ml-badge-neutral'
+    : isAnomaly
+    ? 'ml-badge-alert'
+    : anomalyScore > 0.45
+    ? 'ml-badge-warning'
+    : 'ml-badge-nominal';
 
-  const scorePercent = Math.min(100, Math.max(0, Math.round(anomalyScore * 100)));
+  const scorePercent = hasMlData
+    ? Math.min(100, Math.max(0, Math.round(anomalyScore * 100)))
+    : 0;
   const thresholdPercent = Math.min(100, Math.max(0, Math.round(threshold * 100)));
+  const deltaTempFormatted =
+    features && typeof features.deltaTemp === 'number'
+      ? `${features.deltaTemp >= 0 ? '+' : ''}${features.deltaTemp}°C`
+      : '—';
 
   return (
     <article className="ml-analysis-card" aria-label="Machine Learning Telemetry Analysis">
@@ -70,14 +96,16 @@ export function MLAnalysisCard({ mlData, heartRate }) {
           <div className="ml-score-display">
             <span className="ml-metric-label">Anomaly score</span>
             <div className="ml-score-val-wrap">
-              <span className="ml-score-number">{anomalyScore.toFixed(2)}</span>
+              <span className="ml-score-number">
+                {hasMlData ? anomalyScore.toFixed(2) : '—'}
+              </span>
             </div>
           </div>
 
           <div className="ml-gauge-container">
-            <div className="ml-gauge-track" role="progressbar" aria-valuenow={anomalyScore} aria-valuemin="0" aria-valuemax="1">
+            <div className="ml-gauge-track" role="progressbar" aria-valuenow={hasMlData ? anomalyScore : 0} aria-valuemin="0" aria-valuemax="1">
               <div 
-                className={`ml-gauge-bar ${isAnomaly ? 'gauge-alert' : (anomalyScore > 0.45 ? 'gauge-warning' : 'gauge-nominal')}`} 
+                className={`ml-gauge-bar ${!hasMlData ? 'gauge-nominal' : isAnomaly ? 'gauge-alert' : (anomalyScore > 0.45 ? 'gauge-warning' : 'gauge-nominal')}`} 
                 style={{ width: `${scorePercent}%` }} 
               />
               <div 
@@ -95,7 +123,11 @@ export function MLAnalysisCard({ mlData, heartRate }) {
         </div>
 
         <p className="ml-diagnostic-summary">
-          {isAnomaly ? (
+          {!hasMlData ? (
+            <span className="summary-nominal">
+              Waiting for incoming telemetry window
+            </span>
+          ) : isAnomaly ? (
             <span className="summary-alert">
               Elevated anomaly score detected
             </span>
@@ -151,11 +183,15 @@ export function MLAnalysisCard({ mlData, heartRate }) {
             <div className="ml-rhythm-details">
               <div className="ml-rhythm-row">
                 <span className="rhythm-label">R-R interval:</span>
-                <span className="rhythm-value">{ecgPattern.rrInterval} ms</span>
+                <span className="rhythm-value">
+                  {typeof ecgPattern.rrInterval === 'number' ? `${ecgPattern.rrInterval} ms` : '—'}
+                </span>
               </div>
               <div className="ml-rhythm-row">
                 <span className="rhythm-label">R-R variance:</span>
-                <span className="rhythm-value">±{ecgPattern.rrVariance} ms</span>
+                <span className="rhythm-value">
+                  {typeof ecgPattern.rrVariance === 'number' ? `±${ecgPattern.rrVariance} ms` : '—'}
+                </span>
               </div>
             </div>
           </div>
@@ -171,34 +207,44 @@ export function MLAnalysisCard({ mlData, heartRate }) {
         <div className="ml-features-grid">
           <div className="feature-cell">
             <span className="feature-name">μ_HR</span>
-            <span className="feature-val">{features.meanHr} bpm</span>
+            <span className="feature-val">
+              {features ? `${features.meanHr} bpm` : '—'}
+            </span>
           </div>
           <div className="feature-cell">
             <span className="feature-name">σ_HR</span>
-            <span className="feature-val">{features.stdHr} bpm</span>
+            <span className="feature-val">
+              {features ? `${features.stdHr} bpm` : '—'}
+            </span>
           </div>
           <div className="feature-cell">
             <span className="feature-name">μ_SpO2</span>
-            <span className="feature-val">{features.meanSpo2}%</span>
+            <span className="feature-val">
+              {features ? `${features.meanSpo2}%` : '—'}
+            </span>
           </div>
           <div className="feature-cell">
             <span className="feature-name">μ_Temp</span>
-            <span className="feature-val">{features.meanTemp}°C</span>
+            <span className="feature-val">
+              {features ? `${features.meanTemp}°C` : '—'}
+            </span>
           </div>
           <div className="feature-cell">
             <span className="feature-name">ΔTemp</span>
-            <span className="feature-val">+{features.deltaTemp}°C</span>
+            <span className="feature-val">{deltaTempFormatted}</span>
           </div>
           <div className="feature-cell">
             <span className="feature-name">RMS_ECG</span>
-            <span className="feature-val">{features.rmsEcg}</span>
+            <span className="feature-val">{features ? features.rmsEcg : '—'}</span>
           </div>
         </div>
       </div>
 
       {/* 5. Footer */}
       <div className="ml-card-footer">
-        <span className="ml-latency-meta">Latency: &lt; {data.inferenceLatencyMs ?? 3.8} ms</span>
+        <span className="ml-latency-meta">
+          Latency: {hasMlData ? `${data.inferenceLatencyMs ?? 0} ms` : '—'}
+        </span>
         <span className="ml-disclaimer-meta">Non-diagnostic research index</span>
       </div>
     </article>

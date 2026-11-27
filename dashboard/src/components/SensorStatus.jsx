@@ -8,7 +8,7 @@ import React from 'react';
  * - Clear indicator dot
  * - Data source attribution
  */
-export function SensorStatus({ sensors }) {
+export function SensorStatus({ sensors, deviceId = 'ESP32_001' }) {
   const pulseOximeter = sensors?.pulseOximeter || { name: 'Pulse oximeter', connected: true, statusText: 'Connected' };
   const temperatureProbe = sensors?.temperatureProbe || { name: 'Temperature probe', connected: true, statusText: 'Connected' };
   const ecgModule = sensors?.ecgModule || { name: 'ECG module', connected: true, statusText: 'Connected' };
@@ -41,7 +41,7 @@ export function SensorStatus({ sensors }) {
       </div>
 
       <div className="sensor-card-footer">
-        <span className="sensor-source-label">Hardware sensors (ESP32)</span>
+        <span className="sensor-source-label">Hardware sensors ({deviceId || 'ESP32_001'})</span>
       </div>
     </article>
   );

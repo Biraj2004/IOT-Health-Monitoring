@@ -10,29 +10,52 @@ import { VitalCard } from './VitalCard';
  */
 export function VitalsGrid({ vitals }) {
   const { heartRate, spo2, temperature } = vitals;
+  const hasHr = typeof heartRate === 'number' && Number.isFinite(heartRate);
+  const hasSpo2 = typeof spo2 === 'number' && Number.isFinite(spo2);
+  const hasTemp = typeof temperature === 'number' && Number.isFinite(temperature);
 
   // Heart rate status evaluation
-  const hrStatusType = heartRate > 105 || heartRate < 50 ? 'warning' : 'normal';
-  const hrStatusText = heartRate > 105 
-    ? 'Elevated rate' 
-    : heartRate < 50 
-    ? 'Low rate' 
+  const hrStatusType = !hasHr
+    ? 'disconnected'
+    : heartRate > 105 || heartRate < 50
+    ? 'warning'
+    : 'normal';
+  const hrStatusText = !hasHr
+    ? 'Awaiting reading'
+    : heartRate > 105
+    ? 'Elevated rate'
+    : heartRate < 50
+    ? 'Low rate'
     : 'Within expected range';
 
   // SpO2 status evaluation
-  const spo2StatusType = spo2 < 92 ? 'alert' : spo2 < 95 ? 'warning' : 'normal';
-  const spo2StatusText = spo2 < 90 
-    ? 'Low saturation' 
-    : spo2 < 95 
-    ? 'Borderline saturation' 
+  const spo2StatusType = !hasSpo2
+    ? 'disconnected'
+    : spo2 < 92
+    ? 'alert'
+    : spo2 < 95
+    ? 'warning'
+    : 'normal';
+  const spo2StatusText = !hasSpo2
+    ? 'Awaiting reading'
+    : spo2 < 90
+    ? 'Low saturation'
+    : spo2 < 95
+    ? 'Borderline saturation'
     : 'Within expected range';
 
   // Temperature status evaluation
-  const tempStatusType = temperature > 37.8 || temperature < 35.5 ? 'warning' : 'normal';
-  const tempStatusText = temperature > 37.8 
-    ? 'Elevated temperature' 
-    : temperature < 35.5 
-    ? 'Low temperature' 
+  const tempStatusType = !hasTemp
+    ? 'disconnected'
+    : temperature > 37.8 || temperature < 35.5
+    ? 'warning'
+    : 'normal';
+  const tempStatusText = !hasTemp
+    ? 'Awaiting reading'
+    : temperature > 37.8
+    ? 'Elevated temperature'
+    : temperature < 35.5
+    ? 'Low temperature'
     : 'Within expected range';
 
   return (
