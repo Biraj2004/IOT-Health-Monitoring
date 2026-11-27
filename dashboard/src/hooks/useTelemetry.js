@@ -1,320 +1,546 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  buildWebSocketUrl,
+  fetchAlerts,
+  fetchBackendHealth,
+  fetchDevices,
+  fetchLatestReading,
+} from '../services/api';
 
-/**
- * Custom Hook: useTelemetry
- * Telemetry layer between hardware sensor modules (MAX30102, DS18B20, AD8232),
- * ML inference pipeline, and dashboard presentation layer.
- */
-export function useTelemetry() {
-  const [connectionStatus, setConnectionStatus] = useState('connected'); // 'connected' | 'reconnecting' | 'disconnected'
-  
-  const formatTime = useCallback((dateObj = new Date()) => {
-    return dateObj.toTimeString().split(' ')[0]; // '14:32:08'
-  }, []);
+const IS_DEMO_FALLBACK_ENABLED =
+  import.meta.env.VITE_ENABLE_DEMO_FALLBACK === 'true';
+const INITIAL_DEVICE_FILTER = (import.meta.env.VITE_DEVICE_ID || '').trim();
+const MAX_EVENTS = 50;
+const PING_INTERVAL_MS = 25000;
+const RECONNECT_DELAYS_MS = [1000, 2000, 5000];
 
-  const [lastUpdated, setLastUpdated] = useState(() => formatTime());
+const EMPTY_VITALS = {
+  heartRate: null,
+  spo2: null,
+  temperature: null,
+};
 
-  // Core vitals
-  const [vitals, setVitals] = useState({
-    heartRate: 72,
-    spo2: 99,
-    temperature: 36.8
-  });
+function createIdleSensors(statusText = 'Awaiting data') {
+  return {
+    pulseOximeter: {
+      name: 'Pulse oximeter',
+      connected: false,
+      statusText,
+    },
+    temperatureProbe: {
+      name: 'Temperature probe',
+      connected: false,
+      statusText,
+    },
+    ecgModule: {
+      name: 'ECG module',
+      connected: false,
+      statusText,
+      signalQuality: 'No signal',
+      leadsConnected: false,
+    },
+  };
+}
 
-  // Hardware module states
-  const [sensorStatus, setSensorStatus] = useState({
+function createDemoSensors() {
+  return {
     pulseOximeter: {
       name: 'Pulse oximeter',
       connected: true,
-      statusText: 'Connected'
+      statusText: 'Connected',
     },
     temperatureProbe: {
       name: 'Temperature probe',
       connected: true,
-      statusText: 'Connected'
+      statusText: 'Connected',
     },
     ecgModule: {
       name: 'ECG module',
       connected: true,
       statusText: 'Connected',
       signalQuality: 'Good',
-      leadsConnected: true
+      leadsConnected: true,
+    },
+  };
+}
+
+function normalizeScore(rawScore) {
+  if (typeof rawScore !== 'number' || Number.isNaN(rawScore)) {
+    return null;
+  }
+  const bounded = rawScore < 0 ? (rawScore + 1) / 2 : rawScore;
+  return Number(Math.max(0, Math.min(1, bounded)).toFixed(2));
+}
+
+function buildMlState(data, prevMl) {
+  const pred = data.prediction || data.ml || null;
+  const rawScore =
+    typeof data.anomaly_score === 'number'
+      ? data.anomaly_score
+      : pred && typeof pred.anomaly_score === 'number'
+      ? pred.anomaly_score
+      : null;
+
+  if (!pred && rawScore === null) {
+    return prevMl;
+  }
+
+  const score = normalizeScore(rawScore) ?? prevMl?.anomalyScore ?? 0;
+  const threshold =
+    pred && typeof pred.threshold === 'number'
+      ? pred.threshold
+      : prevMl?.threshold ?? 0.65;
+  const isAnomaly = Boolean(data.anomaly ?? pred?.anomaly ?? score >= threshold);
+  const status =
+    pred?.status ||
+    (isAnomaly ? 'Elevated' : score > 0.45 ? 'Borderline' : 'Normal');
+  const riskLevel =
+    pred?.risk_level ||
+    (isAnomaly ? 'Elevated' : score > 0.45 ? 'Borderline' : 'Nominal');
+
+  return {
+    status,
+    isAnomaly,
+    anomalyScore: score,
+    threshold,
+    riskLevel,
+    trends: pred?.trends || prevMl?.trends || null,
+    ecgPattern: pred?.ecg_pattern || prevMl?.ecgPattern || null,
+    features: pred?.features || prevMl?.features || null,
+    inferenceLatencyMs:
+      pred && typeof pred.latency_ms === 'number'
+        ? pred.latency_ms
+        : prevMl?.inferenceLatencyMs ?? 0,
+  };
+}
+
+/**
+ * Custom Hook: useTelemetry
+ * Coordinates REST bootstrap hydration, real-time WebSocket streaming,
+ * hardware sensor states, ML inference metrics, and clinical event alerts.
+ */
+export function useTelemetry() {
+  const [connectionStatus, setConnectionStatus] = useState('reconnecting'); // 'connected' | 'reconnecting' | 'disconnected'
+  const [dataSource, setDataSource] = useState(
+    IS_DEMO_FALLBACK_ENABLED ? 'demo' : 'unavailable'
+  ); // 'live' | 'snapshot' | 'demo' | 'unavailable'
+  const [backendMeta, setBackendMeta] = useState({
+    reachable: false,
+    database: 'unknown',
+    version: null,
+  });
+
+  const [selectedDeviceId, setSelectedDeviceId] = useState(INITIAL_DEVICE_FILTER);
+  const [activeDeviceId, setActiveDeviceId] = useState(
+    INITIAL_DEVICE_FILTER || 'ESP32_001'
+  );
+  const [devices, setDevices] = useState([]);
+
+  const formatTime = useCallback((value) => {
+    const dateObj =
+      value instanceof Date ? value : value ? new Date(value) : new Date();
+    if (Number.isNaN(dateObj.getTime())) {
+      return new Date().toTimeString().split(' ')[0];
     }
-  });
+    return dateObj.toTimeString().split(' ')[0];
+  }, []);
 
-  // ML Analysis state
-  const [mlAnalysis, setMlAnalysis] = useState({
-    status: 'Normal',
-    isAnomaly: false,
-    anomalyScore: 0.08,
-    threshold: 0.65,
-    riskLevel: 'Nominal',
-    trends: {
-      heartRate: { direction: 'Stable', slope: '+0.1 bpm/min' },
-      spo2: { direction: 'Steady', slope: '0.0 %/min' },
-      temperature: { direction: 'Constant', slope: '+0.0 °C/hr' }
-    },
-    ecgPattern: {
-      classification: 'Normal Sinus Rhythm',
-      rrInterval: 833,
-      rrVariance: 12
-    },
-    features: {
-      meanHr: 72.4,
-      stdHr: 1.6,
-      meanSpo2: 98.8,
-      meanTemp: 36.8,
-      deltaTemp: 0.02,
-      rmsEcg: 142
-    },
-    inferenceLatencyMs: 3.8
-  });
-
-  // Chronological Event Logs
-  const [eventLogs, setEventLogs] = useState(() => {
-    const now = Date.now();
-    const tMinus = (minutesAgo, secAgo = 0) => {
-      const d = new Date(now - (minutesAgo * 60 + secAgo) * 1000);
-      return d.toTimeString().split(' ')[0];
-    };
-
-    return [
-      {
-        id: 'evt-init-1',
-        timestamp: tMinus(4, 12),
-        severity: 'nominal',
-        category: 'Telemetry',
-        message: 'Telemetry ingestion initialized',
-        deviceId: 'ESP32_001'
-      },
-      {
-        id: 'evt-init-2',
-        timestamp: tMinus(3, 45),
-        severity: 'nominal',
-        category: 'Hardware',
-        message: 'AD8232 Lead I baseline stabilized',
-        deviceId: 'ESP32_001'
-      },
-      {
-        id: 'evt-init-3',
-        timestamp: tMinus(2, 20),
-        severity: 'nominal',
-        category: 'Sensors',
-        message: 'MAX30102 PPG acquisition active',
-        deviceId: 'ESP32_001'
-      },
-      {
-        id: 'evt-init-4',
-        timestamp: tMinus(1, 10),
-        severity: 'nominal',
-        category: 'ML Model',
-        message: 'ML model evaluated: Normal (Score: 0.08)',
-        deviceId: 'ESP32_001'
-      }
-    ];
-  });
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [vitals, setVitals] = useState(() =>
+    IS_DEMO_FALLBACK_ENABLED
+      ? { heartRate: 72, spo2: 99, temperature: 36.8 }
+      : EMPTY_VITALS
+  );
+  const [sensorStatus, setSensorStatus] = useState(() =>
+    IS_DEMO_FALLBACK_ENABLED ? createDemoSensors() : createIdleSensors()
+  );
+  const [mlAnalysis, setMlAnalysis] = useState(null);
+  const [ecgStream, setEcgStream] = useState({ samples: [], batchId: 0 });
+  const [eventLogs, setEventLogs] = useState([]);
 
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const reconnectAttemptsRef = useRef(0);
+  const pingIntervalRef = useRef(null);
+  const selectedDeviceRef = useRef(selectedDeviceId);
+  const seenAlertKeysRef = useRef(new Set());
+  const lastPayloadKeyRef = useRef('');
   const recentHistoryRef = useRef([]);
   const lastAlertTimeRef = useRef({});
   const periodicLogCounterRef = useRef(0);
 
-  // Append new event (FIFO 50 items)
-  const addEvent = useCallback((eventItem) => {
-    setEventLogs((prev) => {
-      const newEvent = {
-        id: `evt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        timestamp: eventItem.timestamp || formatTime(),
-        severity: eventItem.severity || 'nominal',
-        category: eventItem.category || 'Vitals',
-        message: eventItem.message,
-        deviceId: eventItem.deviceId || 'ESP32_001'
-      };
-      return [newEvent, ...prev].slice(0, 50);
-    });
-  }, [formatTime]);
+  useEffect(() => {
+    selectedDeviceRef.current = selectedDeviceId;
+  }, [selectedDeviceId]);
+
+  const appendEvents = useCallback(
+    (items) => {
+      if (!Array.isArray(items) || items.length === 0) return;
+
+      setEventLogs((prev) => {
+        const additions = [];
+        for (const item of items) {
+          if (!item || !item.message) continue;
+          const rawTs = item.rawTimestamp || item.timestamp || '';
+          const devId = item.deviceId || 'ESP32_001';
+          const category = item.category || 'Telemetry';
+          const dedupeKey = item.dedupe
+            ? `${devId}|${rawTs}|${category}|${item.message}`
+            : null;
+
+          if (dedupeKey) {
+            if (seenAlertKeysRef.current.has(dedupeKey)) {
+              continue;
+            }
+            seenAlertKeysRef.current.add(dedupeKey);
+            if (seenAlertKeysRef.current.size > 400) {
+              const firstKey = seenAlertKeysRef.current.values().next().value;
+              seenAlertKeysRef.current.delete(firstKey);
+            }
+          }
+
+          additions.push({
+            id:
+              item.id ||
+              `evt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            timestamp: formatTime(item.timestamp),
+            severity: item.severity || 'nominal',
+            category,
+            message: item.message,
+            deviceId: devId,
+          });
+        }
+
+        if (additions.length === 0) {
+          return prev;
+        }
+        return [...additions, ...prev].slice(0, MAX_EVENTS);
+      });
+    },
+    [formatTime]
+  );
+
+  const addEvent = useCallback(
+    (eventItem) => {
+      appendEvents([eventItem]);
+    },
+    [appendEvents]
+  );
 
   const clearEvents = useCallback(() => {
     setEventLogs([]);
   }, []);
 
-  // Threshold alerts
-  const checkVitalThresholds = useCallback((hr, spo2, temp) => {
-    const now = Date.now();
-    const cooldown = 25000;
+  const registerSeenDevice = useCallback((deviceId) => {
+    if (!deviceId) return;
+    setDevices((prev) => {
+      if (prev.some((d) => d.device_id === deviceId)) {
+        return prev;
+      }
+      return [...prev, { device_id: deviceId, status: 'online' }];
+    });
+  }, []);
 
-    if (spo2 < 95) {
-      const last = lastAlertTimeRef.current['low_spo2'] || 0;
-      if (now - last > cooldown) {
-        lastAlertTimeRef.current['low_spo2'] = now;
-        addEvent({
-          severity: spo2 < 90 ? 'critical' : 'warning',
-          category: 'Vitals',
-          message: `Low SpO2: ${spo2}% (Threshold: 95%)`
+  const applyTelemetryPayload = useCallback(
+    (data, source = 'live') => {
+      if (!data || typeof data !== 'object') return;
+
+      const payloadDeviceId = data.device_id || 'ESP32_001';
+      registerSeenDevice(payloadDeviceId);
+
+      // If filtering to a specific device, ignore telemetry from other nodes
+      if (
+        selectedDeviceRef.current &&
+        payloadDeviceId !== selectedDeviceRef.current
+      ) {
+        return;
+      }
+
+      setActiveDeviceId(payloadDeviceId);
+      setDataSource(source);
+
+      setVitals((prev) => ({
+        heartRate:
+          typeof data.heart_rate === 'number'
+            ? Math.round(data.heart_rate)
+            : prev.heartRate,
+        spo2:
+          typeof data.spo2 === 'number' ? Math.round(data.spo2) : prev.spo2,
+        temperature:
+          typeof data.temperature === 'number'
+            ? Number(data.temperature.toFixed(1))
+            : prev.temperature,
+      }));
+
+      const rawSensors = data.sensors || {};
+      const pulseConnected = Boolean(rawSensors.pulse_oximeter ?? true);
+      const tempConnected = Boolean(rawSensors.temp_probe ?? true);
+      const ecgConnected = Boolean(rawSensors.ecg ?? true);
+      const leadsConnected = Boolean(data.leads_connected ?? ecgConnected);
+
+      setSensorStatus({
+        pulseOximeter: {
+          name: 'Pulse oximeter',
+          connected: pulseConnected,
+          statusText: pulseConnected ? 'Connected' : 'Disconnected',
+        },
+        temperatureProbe: {
+          name: 'Temperature probe',
+          connected: tempConnected,
+          statusText: tempConnected ? 'Connected' : 'Disconnected',
+        },
+        ecgModule: {
+          name: 'ECG module',
+          connected: ecgConnected,
+          statusText: ecgConnected ? 'Connected' : 'Disconnected',
+          signalQuality: data.ecg_signal_quality || (leadsConnected ? 'Good' : 'Leads Off'),
+          leadsConnected,
+        },
+      });
+
+      setMlAnalysis((prev) => buildMlState(data, prev));
+
+      if (Array.isArray(data.ecg_samples) && data.ecg_samples.length > 0) {
+        setEcgStream((prev) => ({
+          samples: data.ecg_samples,
+          batchId: prev.batchId + 1,
+        }));
+      }
+
+      const payloadTimestamp = data.timestamp || '';
+      const payloadKey = `${payloadDeviceId}|${payloadTimestamp}`;
+      const isNewPayload = payloadKey !== lastPayloadKeyRef.current;
+      lastPayloadKeyRef.current = payloadKey;
+
+      if (isNewPayload && Array.isArray(data.alerts) && data.alerts.length > 0) {
+        appendEvents(
+          data.alerts
+            .slice()
+            .reverse()
+            .map((alert) => ({
+              severity: alert.severity || 'warning',
+              category: alert.category || 'System',
+              message: alert.message || alert.text,
+              deviceId: payloadDeviceId,
+              timestamp: payloadTimestamp || undefined,
+              rawTimestamp: payloadTimestamp,
+              dedupe: true,
+            }))
+        );
+      } else if (isNewPayload && data.alert) {
+        appendEvents([
+          {
+            severity: 'warning',
+            category: 'Alert',
+            message: String(data.alert),
+            deviceId: payloadDeviceId,
+            timestamp: payloadTimestamp || undefined,
+            rawTimestamp: payloadTimestamp,
+            dedupe: true,
+          },
+        ]);
+      }
+
+      setLastUpdated(formatTime(payloadTimestamp || undefined));
+    },
+    [appendEvents, formatTime, registerSeenDevice]
+  );
+
+  // Initial & device-change REST bootstrap hydration
+  useEffect(() => {
+    const controller = new AbortController();
+    const deviceFilter = selectedDeviceId || undefined;
+
+    async function hydrateFromBackend() {
+      const [healthRes, devicesRes, latestRes, alertsRes] =
+        await Promise.allSettled([
+          fetchBackendHealth({ signal: controller.signal }),
+          fetchDevices({ signal: controller.signal }),
+          fetchLatestReading({
+            deviceId: deviceFilter,
+            signal: controller.signal,
+          }),
+          fetchAlerts({
+            limit: MAX_EVENTS,
+            deviceId: deviceFilter,
+            signal: controller.signal,
+          }),
+        ]);
+
+      if (controller.signal.aborted) return;
+
+      if (healthRes.status === 'fulfilled' && healthRes.value) {
+        setBackendMeta({
+          reachable: true,
+          database: healthRes.value.database || 'in-memory',
+          version: healthRes.value.version || null,
         });
+      }
+
+      if (devicesRes.status === 'fulfilled' && Array.isArray(devicesRes.value)) {
+        setDevices(devicesRes.value);
+        if (!deviceFilter && devicesRes.value.length > 0) {
+          setActiveDeviceId(devicesRes.value[0].device_id);
+        }
+      }
+
+      if (alertsRes.status === 'fulfilled' && alertsRes.value?.alerts) {
+        const hydratedAlerts = alertsRes.value.alerts.map((alert, idx) => {
+          const rawTs = alert.timestamp || alert.created_at || '';
+          const devId = alert.device_id || deviceFilter || 'ESP32_001';
+          const category = alert.category || 'System';
+          const message = alert.message || alert.text || '';
+          const key = `${devId}|${rawTs}|${category}|${message}`;
+          seenAlertKeysRef.current.add(key);
+
+          return {
+            id: alert.id || `hist-${idx}-${rawTs}`,
+            timestamp: formatTime(rawTs || undefined),
+            severity: alert.severity || 'warning',
+            category,
+            message,
+            deviceId: devId,
+          };
+        });
+        setEventLogs((prev) => {
+          if (deviceFilter) {
+            return hydratedAlerts.slice(0, MAX_EVENTS);
+          }
+          const hydratedKeys = new Set(
+            hydratedAlerts.map(
+              (e) => `${e.deviceId}|${e.timestamp}|${e.category}|${e.message}`
+            )
+          );
+          const newerLive = prev.filter(
+            (e) =>
+              !hydratedKeys.has(
+                `${e.deviceId}|${e.timestamp}|${e.category}|${e.message}`
+              )
+          );
+          return [...newerLive, ...hydratedAlerts].slice(0, MAX_EVENTS);
+        });
+      }
+
+      if (
+        latestRes.status === 'fulfilled' &&
+        latestRes.value &&
+        (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)
+      ) {
+        applyTelemetryPayload(latestRes.value, 'snapshot');
+      } else if (deviceFilter && (!latestRes.value || latestRes.status !== 'fulfilled')) {
+        setVitals(EMPTY_VITALS);
+        setMlAnalysis(null);
+        setEcgStream((prev) => ({ samples: [], batchId: prev.batchId + 1 }));
+        setSensorStatus(createIdleSensors('Awaiting data'));
       }
     }
 
-    if (hr > 100) {
-      const last = lastAlertTimeRef.current['high_hr'] || 0;
-      if (now - last > cooldown) {
-        lastAlertTimeRef.current['high_hr'] = now;
-        addEvent({
-          severity: 'warning',
-          category: 'Vitals',
-          message: `High heart rate: ${hr} BPM (Threshold: 100 BPM)`
-        });
-      }
-    } else if (hr < 60) {
-      const last = lastAlertTimeRef.current['low_hr'] || 0;
-      if (now - last > cooldown) {
-        lastAlertTimeRef.current['low_hr'] = now;
-        addEvent({
-          severity: 'warning',
-          category: 'Vitals',
-          message: `Low heart rate: ${hr} BPM (Threshold: 60 BPM)`
-        });
-      }
-    }
+    hydrateFromBackend();
 
-    if (temp > 37.5) {
-      const last = lastAlertTimeRef.current['high_temp'] || 0;
-      if (now - last > cooldown) {
-        lastAlertTimeRef.current['high_temp'] = now;
-        addEvent({
-          severity: 'warning',
-          category: 'Vitals',
-          message: `High temperature: ${temp} °C (Threshold: 37.5 °C)`
-        });
-      }
-    }
-  }, [addEvent]);
+    return () => {
+      controller.abort();
+    };
+  }, [selectedDeviceId, applyTelemetryPayload, formatTime]);
 
-  // WebSocket Connection Handler
+  // Persistent WebSocket stream with ping/pong keepalive and bounded backoff
   useEffect(() => {
     let isMounted = true;
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/health';
+    const wsUrl = buildWebSocketUrl();
+
+    const clearSocketTimers = () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+        pingIntervalRef.current = null;
+      }
+    };
+
+    const scheduleReconnect = () => {
+      if (!isMounted) return;
+      const attempt = reconnectAttemptsRef.current;
+      const delay =
+        RECONNECT_DELAYS_MS[Math.min(attempt, RECONNECT_DELAYS_MS.length - 1)];
+      reconnectAttemptsRef.current += 1;
+
+      setConnectionStatus(attempt >= 2 ? 'disconnected' : 'reconnecting');
+      if (attempt >= 2 && !IS_DEMO_FALLBACK_ENABLED) {
+        setSensorStatus((prev) => ({
+          pulseOximeter: {
+            ...prev.pulseOximeter,
+            connected: false,
+            statusText: 'Offline',
+          },
+          temperatureProbe: {
+            ...prev.temperatureProbe,
+            connected: false,
+            statusText: 'Offline',
+          },
+          ecgModule: {
+            ...prev.ecgModule,
+            connected: false,
+            statusText: 'Offline',
+            signalQuality: 'No signal',
+          },
+        }));
+      }
+
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay);
+    };
 
     const connectWebSocket = () => {
+      if (!isMounted) return;
+      clearSocketTimers();
+      setConnectionStatus(
+        reconnectAttemptsRef.current >= 2 ? 'disconnected' : 'reconnecting'
+      );
+
       try {
         const socket = new WebSocket(wsUrl);
         wsRef.current = socket;
 
         socket.onopen = () => {
           if (!isMounted) return;
+          reconnectAttemptsRef.current = 0;
           setConnectionStatus('connected');
-          setLastUpdated(formatTime());
+          setBackendMeta((prev) => ({ ...prev, reachable: true }));
           addEvent({
             severity: 'nominal',
             category: 'Network',
-            message: 'WebSocket stream connected'
+            message: 'WebSocket stream connected',
+            deviceId: selectedDeviceRef.current || 'Backend',
           });
+
+          pingIntervalRef.current = setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ type: 'ping' }));
+            }
+          }, PING_INTERVAL_MS);
         };
 
         socket.onmessage = (event) => {
           if (!isMounted) return;
           try {
             const data = JSON.parse(event.data);
-            
-            let currentHr = vitals.heartRate;
-            let currentSpo2 = vitals.spo2;
-            let currentTemp = vitals.temperature;
-
-            setVitals((prev) => {
-              const updatedHr = typeof data.heart_rate === 'number' ? Math.round(data.heart_rate) : prev.heartRate;
-              const updatedSpo2 = typeof data.spo2 === 'number' ? Math.round(data.spo2) : prev.spo2;
-              const updatedTemp = typeof data.temperature === 'number' ? Number(data.temperature.toFixed(1)) : prev.temperature;
-              currentHr = updatedHr;
-              currentSpo2 = updatedSpo2;
-              currentTemp = updatedTemp;
-              return { heartRate: updatedHr, spo2: updatedSpo2, temperature: updatedTemp };
-            });
-
-            checkVitalThresholds(currentHr, currentSpo2, currentTemp);
-
-            if (data.sensors) {
-              setSensorStatus((prev) => ({
-                pulseOximeter: {
-                  ...prev.pulseOximeter,
-                  connected: Boolean(data.sensors.pulse_oximeter ?? true),
-                  statusText: data.sensors.pulse_oximeter ? 'Connected' : 'Disconnected'
-                },
-                temperatureProbe: {
-                  ...prev.temperatureProbe,
-                  connected: Boolean(data.sensors.temp_probe ?? true),
-                  statusText: data.sensors.temp_probe ? 'Connected' : 'Disconnected'
-                },
-                ecgModule: {
-                  ...prev.ecgModule,
-                  connected: Boolean(data.sensors.ecg ?? true),
-                  statusText: data.sensors.ecg ? 'Connected' : 'Disconnected',
-                  signalQuality: data.ecg_signal_quality || 'Good',
-                  leadsConnected: Boolean(data.leads_connected ?? true)
-                }
-              }));
+            if (!data || data.type === 'pong') {
+              return;
             }
-
-            if (data.prediction || data.ml || typeof data.anomaly_score === 'number') {
-              const pred = data.prediction || data.ml || {};
-              const rawScore = typeof data.anomaly_score === 'number' 
-                ? data.anomaly_score 
-                : (typeof pred.anomaly_score === 'number' ? pred.anomaly_score : 0.08);
-              
-              const score = Math.max(0, Math.min(1, rawScore < 0 ? (rawScore + 1) / 2 : rawScore));
-              const isAnomaly = Boolean(data.anomaly ?? pred.anomaly ?? (score >= 0.65));
-
-              setMlAnalysis((prev) => ({
-                ...prev,
-                anomalyScore: score,
-                isAnomaly,
-                status: isAnomaly ? 'Elevated' : (score > 0.45 ? 'Borderline' : 'Normal'),
-                riskLevel: isAnomaly ? 'Elevated' : 'Nominal',
-                trends: pred.trends || prev.trends,
-                ecgPattern: pred.ecg_pattern || prev.ecgPattern,
-                features: pred.features || prev.features,
-                inferenceLatencyMs: pred.latency_ms || prev.inferenceLatencyMs
-              }));
-
-              if (isAnomaly) {
-                const now = Date.now();
-                if (now - (lastAlertTimeRef.current['ml_anomaly'] || 0) > 30000) {
-                  lastAlertTimeRef.current['ml_anomaly'] = now;
-                  addEvent({
-                    severity: 'critical',
-                    category: 'ML Model',
-                    message: `ML anomaly detected: Score ${score.toFixed(2)} (Threshold: 0.65)`
-                  });
-                }
-              }
-            }
-
-            if (Array.isArray(data.alerts)) {
-              data.alerts.forEach((alert) => {
-                addEvent({
-                  severity: alert.severity || 'warning',
-                  category: alert.category || 'System',
-                  message: alert.message || alert.text
-                });
-              });
-            } else if (data.alert) {
-              addEvent({
-                severity: 'warning',
-                category: 'Alert',
-                message: String(data.alert)
-              });
-            }
-
             setConnectionStatus('connected');
-            setLastUpdated(formatTime());
+            applyTelemetryPayload(data, 'live');
           } catch {
-            // Non-JSON ignored
+            // Non-JSON frame ignored
           }
         };
 
         socket.onclose = () => {
           if (!isMounted) return;
-          reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+          clearSocketTimers();
+          if (wsRef.current === socket) {
+            wsRef.current = null;
+          }
+          scheduleReconnect();
         };
 
         socket.onerror = () => {
@@ -323,9 +549,7 @@ export function useTelemetry() {
           }
         };
       } catch {
-        if (isMounted) {
-          reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
-        }
+        scheduleReconnect();
       }
     };
 
@@ -333,126 +557,167 @@ export function useTelemetry() {
 
     return () => {
       isMounted = false;
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
+      clearSocketTimers();
       if (wsRef.current) {
         wsRef.current.close();
+        wsRef.current = null;
       }
     };
-  }, [formatTime, addEvent, checkVitalThresholds, vitals]);
+  }, [addEvent, applyTelemetryPayload]);
 
-  // Baseline drift and sliding feature calculation
+  // Opt-in offline demo simulation (only active when VITE_ENABLE_DEMO_FALLBACK=true)
   useEffect(() => {
+    if (!IS_DEMO_FALLBACK_ENABLED) return undefined;
+
+    const checkDemoThresholds = (hr, spo2, temp) => {
+      const now = Date.now();
+      const cooldown = 25000;
+      if (spo2 < 95 && now - (lastAlertTimeRef.current.low_spo2 || 0) > cooldown) {
+        lastAlertTimeRef.current.low_spo2 = now;
+        addEvent({
+          severity: spo2 < 90 ? 'critical' : 'warning',
+          category: 'Vitals',
+          message: `Low SpO2: ${spo2}% (Threshold: 95%)`,
+        });
+      }
+      if (hr > 100 && now - (lastAlertTimeRef.current.high_hr || 0) > cooldown) {
+        lastAlertTimeRef.current.high_hr = now;
+        addEvent({
+          severity: 'warning',
+          category: 'Vitals',
+          message: `High heart rate: ${hr} BPM (Threshold: 100 BPM)`,
+        });
+      }
+      if (temp > 37.5 && now - (lastAlertTimeRef.current.high_temp || 0) > cooldown) {
+        lastAlertTimeRef.current.high_temp = now;
+        addEvent({
+          severity: 'warning',
+          category: 'Vitals',
+          message: `High temperature: ${temp} °C (Threshold: 37.5 °C)`,
+        });
+      }
+    };
+
     const interval = setInterval(() => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        setVitals((prev) => {
-          const hrDelta = (Math.random() - 0.5) * 1.0;
-          const newHr = Math.round(Math.min(76, Math.max(69, prev.heartRate + hrDelta)));
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        return;
+      }
 
-          const spo2Delta = Math.random() > 0.85 ? (Math.random() > 0.5 ? 0 : -1) : 0;
-          const newSpo2 = Math.min(99, Math.max(98, prev.spo2 + spo2Delta));
+      setDataSource('demo');
+      setSensorStatus(createDemoSensors());
+      setVitals((prev) => {
+        const baseHr = typeof prev.heartRate === 'number' ? prev.heartRate : 72;
+        const baseSpo2 = typeof prev.spo2 === 'number' ? prev.spo2 : 99;
+        const baseTemp =
+          typeof prev.temperature === 'number' ? prev.temperature : 36.8;
 
-          const tempDelta = (Math.random() - 0.49) * 0.04;
-          const newTemp = Number(Math.min(37.0, Math.max(36.6, prev.temperature + tempDelta)).toFixed(1));
+        const newHr = Math.round(
+          Math.min(76, Math.max(69, baseHr + (Math.random() - 0.5) * 1.0))
+        );
+        const spo2Delta =
+          Math.random() > 0.85 ? (Math.random() > 0.5 ? 0 : -1) : 0;
+        const newSpo2 = Math.min(99, Math.max(98, baseSpo2 + spo2Delta));
+        const newTemp = Number(
+          Math.min(
+            37.0,
+            Math.max(36.6, baseTemp + (Math.random() - 0.49) * 0.04)
+          ).toFixed(1)
+        );
 
-          const history = recentHistoryRef.current;
-          history.push({ hr: newHr, spo2: newSpo2, temp: newTemp, t: Date.now() });
-          if (history.length > 15) history.shift();
+        const history = recentHistoryRef.current;
+        history.push({ hr: newHr, spo2: newSpo2, temp: newTemp });
+        if (history.length > 15) history.shift();
 
-          const hrSum = history.reduce((acc, v) => acc + v.hr, 0);
-          const hrMean = hrSum / history.length;
-          const hrVariance = history.reduce((acc, v) => acc + Math.pow(v.hr - hrMean, 2), 0) / history.length;
-          const hrStd = Math.sqrt(hrVariance);
+        const hrMean = history.reduce((acc, v) => acc + v.hr, 0) / history.length;
+        const hrStd = Math.sqrt(
+          history.reduce((acc, v) => acc + Math.pow(v.hr - hrMean, 2), 0) /
+            history.length
+        );
+        const spo2Mean =
+          history.reduce((acc, v) => acc + v.spo2, 0) / history.length;
+        const tempMean =
+          history.reduce((acc, v) => acc + v.temp, 0) / history.length;
+        const deltaTemp = Math.abs(
+          history[history.length - 1].temp - history[0].temp
+        );
+        const currentAnomalyScore = Number(
+          Math.min(
+            0.35,
+            Math.max(
+              0.04,
+              0.07 +
+                (Math.abs(newHr - 72) / 30) * 0.2 +
+                ((100 - newSpo2) / 5) * 0.15 +
+                (Math.random() - 0.5) * 0.02
+            )
+          ).toFixed(2)
+        );
 
-          const spo2Mean = history.reduce((acc, v) => acc + v.spo2, 0) / history.length;
-          const tempMean = history.reduce((acc, v) => acc + v.temp, 0) / history.length;
-          const deltaTemp = Math.abs(history[history.length - 1].temp - history[0].temp);
-
-          const normalizedDist = (Math.abs(newHr - 72) / 30) * 0.2 + ((100 - newSpo2) / 5) * 0.15 + (Math.abs(newTemp - 36.8) / 1.5) * 0.1;
-          const currentAnomalyScore = Number(Math.min(0.35, Math.max(0.04, 0.07 + normalizedDist + (Math.random() - 0.5) * 0.02)).toFixed(2));
-          const isAnomaly = currentAnomalyScore >= 0.65;
-
-          const hrSlopeVal = Number(((history[history.length - 1].hr - history[0].hr) / 2).toFixed(1));
-          const hrDirection = hrSlopeVal > 0.5 ? 'Rising' : (hrSlopeVal < -0.5 ? 'Decreasing' : 'Stable');
-          const hrSlopeFormatted = hrSlopeVal >= 0 ? `+${hrSlopeVal} bpm/min` : `${hrSlopeVal} bpm/min`;
-
-          const spo2SlopeVal = Number(((history[history.length - 1].spo2 - history[0].spo2) / 2).toFixed(1));
-          const spo2Direction = spo2SlopeVal < -0.3 ? 'Decreasing' : 'Steady';
-          const spo2SlopeFormatted = spo2SlopeVal >= 0 ? `+${spo2SlopeVal} %/min` : `${spo2SlopeVal} %/min`;
-
-          const tempSlopeVal = Number(((history[history.length - 1].temp - history[0].temp) * 6).toFixed(1));
-          const tempDirection = Math.abs(tempSlopeVal) > 0.1 ? (tempSlopeVal > 0 ? 'Drifting up' : 'Drifting down') : 'Constant';
-          const tempSlopeFormatted = tempSlopeVal >= 0 ? `+${tempSlopeVal} °C/hr` : `${tempSlopeVal} °C/hr`;
-
-          const rrInterval = Math.round(60000 / newHr);
-          const rrVariance = Math.round(10 + Math.random() * 4);
-          const rhythmClassification = newHr > 100 
-            ? 'Sinus Tachycardia' 
-            : (newHr < 60 ? 'Sinus Bradycardia' : 'Normal Sinus Rhythm');
-
-          setMlAnalysis({
-            status: isAnomaly ? 'Elevated' : (currentAnomalyScore > 0.45 ? 'Borderline' : 'Normal'),
-            isAnomaly,
-            anomalyScore: currentAnomalyScore,
-            threshold: 0.65,
-            riskLevel: 'Nominal',
-            trends: {
-              heartRate: { direction: hrDirection, slope: hrSlopeFormatted },
-              spo2: { direction: spo2Direction, slope: spo2SlopeFormatted },
-              temperature: { direction: tempDirection, slope: tempSlopeFormatted }
-            },
-            ecgPattern: {
-              classification: rhythmClassification,
-              rrInterval,
-              rrVariance
-            },
-            features: {
-              meanHr: Number(hrMean.toFixed(1)),
-              stdHr: Number(hrStd.toFixed(1)),
-              meanSpo2: Number(spo2Mean.toFixed(1)),
-              meanTemp: Number(tempMean.toFixed(1)),
-              deltaTemp: Number(deltaTemp.toFixed(2)),
-              rmsEcg: Math.round(138 + Math.random() * 8)
-            },
-            inferenceLatencyMs: Number((3.5 + Math.random() * 0.8).toFixed(1))
-          });
-
-          checkVitalThresholds(newHr, newSpo2, newTemp);
-
-          periodicLogCounterRef.current += 1;
-          if (periodicLogCounterRef.current >= 18) {
-            periodicLogCounterRef.current = 0;
-            addEvent({
-              severity: 'nominal',
-              category: 'ML Model',
-              message: `ML evaluation: Normal (Score: ${currentAnomalyScore.toFixed(2)})`
-            });
-          }
-
-          return {
-            heartRate: newHr,
-            spo2: newSpo2,
-            temperature: newTemp
-          };
+        setMlAnalysis({
+          status: 'Normal',
+          isAnomaly: false,
+          anomalyScore: currentAnomalyScore,
+          threshold: 0.65,
+          riskLevel: 'Nominal',
+          trends: {
+            heartRate: { direction: 'Stable', slope: '+0.0 bpm/min' },
+            spo2: { direction: 'Steady', slope: '0.0 %/min' },
+            temperature: { direction: 'Constant', slope: '+0.0 °C/hr' },
+          },
+          ecgPattern: {
+            classification: 'Normal Sinus Rhythm',
+            rrInterval: Math.round(60000 / newHr),
+            rrVariance: Math.round(10 + Math.random() * 4),
+          },
+          features: {
+            meanHr: Number(hrMean.toFixed(1)),
+            stdHr: Number(hrStd.toFixed(1)),
+            meanSpo2: Number(spo2Mean.toFixed(1)),
+            meanTemp: Number(tempMean.toFixed(1)),
+            deltaTemp: Number(deltaTemp.toFixed(2)),
+            rmsEcg: Math.round(138 + Math.random() * 8),
+          },
+          inferenceLatencyMs: Number((3.5 + Math.random() * 0.8).toFixed(1)),
         });
 
-        setLastUpdated(formatTime());
-      }
+        checkDemoThresholds(newHr, newSpo2, newTemp);
+
+        periodicLogCounterRef.current += 1;
+        if (periodicLogCounterRef.current >= 18) {
+          periodicLogCounterRef.current = 0;
+          addEvent({
+            severity: 'nominal',
+            category: 'ML Model',
+            message: `Demo evaluation: Normal (Score: ${currentAnomalyScore.toFixed(2)})`,
+          });
+        }
+
+        return { heartRate: newHr, spo2: newSpo2, temperature: newTemp };
+      });
+
+      setLastUpdated(formatTime());
     }, 2500);
 
     return () => clearInterval(interval);
-  }, [formatTime, checkVitalThresholds, addEvent]);
+  }, [addEvent, formatTime]);
 
   return {
     connectionStatus,
+    dataSource,
+    backendMeta,
     lastUpdated,
     vitals,
     sensorStatus,
     mlAnalysis,
+    ecgSamples: ecgStream.samples,
+    ecgBatchId: ecgStream.batchId,
+    deviceId: activeDeviceId,
+    selectedDeviceId,
+    onSelectDevice: setSelectedDeviceId,
+    devices,
     eventLogs,
     clearEvents,
-    addEvent
+    addEvent,
   };
 }
 
