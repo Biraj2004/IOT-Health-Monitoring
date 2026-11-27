@@ -9,22 +9,57 @@ import { FileTextIcon, ExternalLinkIcon } from './Icons';
  * - Report button hidden on mobile (≤767px)
  * - Completely responsive with zero horizontal overflow
  */
-export function DashboardHeader({ connectionStatus = 'connected', lastUpdated }) {
+export function DashboardHeader({
+  connectionStatus = 'connected',
+  dataSource = 'live',
+  lastUpdated,
+  deviceId,
+  devices = [],
+  selectedDeviceId = '',
+  onSelectDevice,
+}) {
   const isConnected = connectionStatus === 'connected';
   const isReconnecting = connectionStatus === 'reconnecting';
+  const isDemo = !isConnected && dataSource === 'demo';
 
   const connectionLabel = isConnected
     ? 'DEVICE CONNECTED'
+    : isDemo
+    ? 'DEMO MODE'
     : isReconnecting
     ? 'RECONNECTING'
     : 'DEVICE DISCONNECTED';
 
+  const badgeStatusClass = isDemo ? 'reconnecting' : connectionStatus;
+
   return (
     <header className="dashboard-header" role="banner">
-      <div className="header-brand">
-        <span className="brand-vital">VITAL</span>
-        <span className="brand-slash">/</span>
-        <span className="brand-monitor">MONITOR</span>
+      <div className="header-primary-group">
+        <div className="header-brand">
+          <span className="brand-vital">VITAL</span>
+          <span className="brand-slash">/</span>
+          <span className="brand-monitor">MONITOR</span>
+        </div>
+
+        {devices.length > 1 && onSelectDevice ? (
+          <select
+            className="header-device-select"
+            aria-label="Select hardware device"
+            value={selectedDeviceId}
+            onChange={(e) => onSelectDevice(e.target.value)}
+          >
+            <option value="">Auto ({deviceId || 'Latest'})</option>
+            {devices.map((dev) => (
+              <option key={dev.device_id} value={dev.device_id}>
+                {dev.device_id}
+              </option>
+            ))}
+          </select>
+        ) : deviceId ? (
+          <span className="header-device-pill" title="Active hardware node">
+            {deviceId}
+          </span>
+        ) : null}
       </div>
 
       <div className="header-meta">
@@ -42,7 +77,7 @@ export function DashboardHeader({ connectionStatus = 'connected', lastUpdated })
 
         <span className="header-divider header-report-divider" aria-hidden="true" />
 
-        <div className={`connection-badge connection-${connectionStatus}`}>
+        <div className={`connection-badge connection-${badgeStatusClass}`}>
           <span className="connection-dot" aria-hidden="true" />
           <span className="connection-label">{connectionLabel}</span>
         </div>

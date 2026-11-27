@@ -40,10 +40,18 @@ export function App() {
 
   const {
     connectionStatus,
+    dataSource,
+    backendMeta,
     lastUpdated,
     vitals,
     sensorStatus,
     mlAnalysis,
+    ecgSamples,
+    ecgBatchId,
+    deviceId,
+    selectedDeviceId,
+    onSelectDevice,
+    devices,
     eventLogs,
     clearEvents
   } = useTelemetry();
@@ -67,6 +75,15 @@ export function App() {
     return <ErrorPage initialErrorCode="404" onNavigateHome={() => navigate('/')} />;
   }
 
+  const overviewSubtitle =
+    connectionStatus === 'connected'
+      ? 'Live readings from connected sensors.'
+      : dataSource === 'demo'
+      ? 'Simulated baseline telemetry (backend offline).'
+      : dataSource === 'snapshot'
+      ? 'Showing last recorded telemetry snapshot; reconnecting live stream.'
+      : 'Waiting for telemetry from FastAPI backend.';
+
   // Primary Clinical Dashboard
   return (
     <div className="app-viewport">
@@ -74,13 +91,18 @@ export function App() {
         {/* 1. Persistent Top Header with Workflow Report PDF Button */}
         <DashboardHeader
           connectionStatus={connectionStatus}
+          dataSource={dataSource}
           lastUpdated={lastUpdated}
+          deviceId={deviceId}
+          devices={devices}
+          selectedDeviceId={selectedDeviceId}
+          onSelectDevice={onSelectDevice}
         />
 
         {/* 2. Overview Heading */}
         <div className="overview-heading-block">
           <h1 className="overview-title">Patient overview</h1>
-          <p className="overview-subtitle">Live readings from connected sensors.</p>
+          <p className="overview-subtitle">{overviewSubtitle}</p>
         </div>
 
         {/* 3. Vitals Readings Grid (Heart Rate, SpO2, Body Temperature) */}
@@ -90,11 +112,15 @@ export function App() {
         <div className="monitor-grid">
           <ECGMonitor
             heartRate={vitals.heartRate}
-            leadsConnected={sensorStatus?.ecgModule?.leadsConnected ?? true}
-            signalQuality={sensorStatus?.ecgModule?.signalQuality || 'Good'}
+            leadsConnected={sensorStatus?.ecgModule?.leadsConnected ?? false}
+            signalQuality={sensorStatus?.ecgModule?.signalQuality || 'No signal'}
+            ecgSamples={ecgSamples}
+            ecgBatchId={ecgBatchId}
+            connectionStatus={connectionStatus}
+            dataSource={dataSource}
           />
 
-          <SensorStatus sensors={sensorStatus} />
+          <SensorStatus sensors={sensorStatus} deviceId={deviceId} />
         </div>
 
         {/* 5. Clinical Analytics & Event Stream Grid (AI/ML Analysis + Event Log) */}
@@ -107,6 +133,9 @@ export function App() {
           <EventLog
             events={eventLogs}
             onClear={clearEvents}
+            connectionStatus={connectionStatus}
+            dataSource={dataSource}
+            backendDatabase={backendMeta?.database}
           />
         </div>
       </div>
